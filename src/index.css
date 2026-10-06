@@ -1,0 +1,147 @@
+@import '@fontsource/fraunces/500.css';
+@import '@fontsource/fraunces/600.css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/400-italic.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Colour tokens are stored as RGB channels so Tailwind opacity modifiers work. */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: 250 246 240;
+  --panel: 255 255 255;
+  --panel-alt: 240 234 224;
+  --ink: 30 36 56;
+  --muted: 91 97 120;
+  --gold: 201 138 61;
+  --rose: 184 92 86;
+  --success: 62 138 109;
+  --warning: 201 138 61;
+  --danger: 184 72 62;
+  --border: rgba(30, 36, 56, 0.12);
+  --border-strong: rgba(30, 36, 56, 0.24);
+  --scanner-bg: 20 24 42;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: 20 24 42;
+  --panel: 28 33 56;
+  --panel-alt: 38 44 72;
+  --ink: 243 239 230;
+  --muted: 166 171 196;
+  --gold: 224 169 79;
+  --rose: 217 123 114;
+  --success: 95 184 148;
+  --warning: 224 169 79;
+  --danger: 217 105 93;
+  --border: rgba(243, 239, 230, 0.14);
+  --border-strong: rgba(243, 239, 230, 0.28);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-bg text-ink font-sans text-body antialiased;
+    font-weight: 400;
+  }
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 500;
+    font-optical-sizing: auto;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--ink));
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px rgb(var(--gold) / 0.35);
+    border-radius: 6px;
+  }
+  ::selection {
+    background: rgb(var(--gold) / 0.3);
+  }
+  a {
+    text-underline-offset: 3px;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-content px-5 sm:px-8;
+  }
+  .rule {
+    border-top: 1px solid var(--border);
+  }
+  .link {
+    @apply underline decoration-1 underline-offset-4 hover:decoration-2;
+    text-decoration-color: rgb(var(--rose) / 0.7);
+  }
+  .field {
+    @apply block w-full rounded-lg border bg-panel px-3.5 py-2.5 text-body text-ink placeholder:text-muted/70;
+    border-color: var(--border-strong);
+  }
+  .field:focus-visible {
+    border-radius: 0.5rem;
+  }
+  .label {
+    @apply mb-1.5 block text-label font-medium text-ink;
+  }
+  .hint {
+    @apply mt-1 text-caption text-muted;
+  }
+  .surface {
+    @apply rounded-2xl border bg-panel;
+  }
+  .grain {
+    background-image: radial-gradient(rgb(var(--ink) / 0.035) 1px, transparent 1px);
+    background-size: 4px 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes draw-in {
+  from { stroke-dashoffset: var(--dash, 400); }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scan-sweep {
+  0% { transform: translateY(-10%); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateY(110%); opacity: 0; }
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgb(var(--gold) / 0.55); }
+  100% { box-shadow: 0 0 0 16px rgb(var(--gold) / 0); }
+}
+.animate-pop { animation: pop-in 0.35s ease-out both; }
+.animate-rise { animation: rise-in 0.45s ease-out both; }
+.animate-sweep { animation: scan-sweep 1.6s ease-in-out infinite; }
+.animate-pulse-ring { animation: pulse-ring 1.2s ease-out infinite; }
+.draw-in { stroke-dasharray: var(--dash, 400); animation: draw-in 0.7s ease-out both; }
