@@ -20,6 +20,9 @@ The camera needs a **secure context**: `https://` or `localhost`. To try it on a
 
 ### Deploying
 
+Every push to the main branch runs `.github/workflows/deploy.yml`, which runs the tests, builds the site and publishes it to GitHub Pages at https://rividyathasathakshi.github.io/demo/.
+
+
 `npm run build` produces a fully static site in `dist/`. It uses a relative base path and hash routing, so it works on any static host (GitHub Pages, Netlify, S3, a USB stick at the exhibition stand) with no rewrite rules.
 
 ## What is in the box
