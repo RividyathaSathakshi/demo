@@ -35,7 +35,8 @@ export interface UrineAnalysis {
   productId: string;
   readings: PadReading[];
   /** Which way the pads were mapped onto the product's parameter list. */
-  orderSource: 'handle' | 'colorFit';
+  /** How pads were mapped to parameters: strip geometry, colour fit, or a trained detection model. */
+  orderSource: 'handle' | 'colorFit' | 'model';
   overall: ScreeningStatus;
   unreadableCount: number;
   alternatives: string[];
@@ -48,6 +49,20 @@ export type UrineAnalysisOutcome =
 const LEVEL_LABS = new Map<UrineParamId, Lab[]>();
 for (const p of Object.values(URINE_PARAMETERS)) {
   LEVEL_LABS.set(p.id, p.levels.map((l) => rgbToLab(...hexToRgb(l.color))));
+}
+
+/** Closest reference level for one pad colour (CIEDE2000). */
+export function matchLevel(paramId: UrineParamId, lab: Lab): { levelIndex: number; deltaE: number } {
+  let levelIndex = 0;
+  let deltaE = Infinity;
+  LEVEL_LABS.get(paramId)!.forEach((ref, i) => {
+    const d = deltaE2000(lab, ref);
+    if (d < deltaE) {
+      deltaE = d;
+      levelIndex = i;
+    }
+  });
+  return { levelIndex, deltaE };
 }
 
 function samplePad(strip: NormalizedStrip, r: StripRegion): RGB {
@@ -73,7 +88,7 @@ function samplePad(strip: NormalizedStrip, r: StripRegion): RGB {
   return [median(rs), median(gs), median(bs)];
 }
 
-function confidenceFor(dE: number, inferred: boolean): ReadingConfidence {
+export function confidenceFor(dE: number, inferred: boolean): ReadingConfidence {
   let c: ReadingConfidence = dE <= 7 ? 'high' : dE <= 13 ? 'medium' : dE <= 20 ? 'low' : 'unreadable';
   if (inferred && c === 'high') c = 'medium';
   return c;

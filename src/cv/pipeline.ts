@@ -168,6 +168,10 @@ export interface ScanReport {
   urine?: UrineAnalysis;
   opk?: OpkAnalysis;
   timingsMs: Record<string, number>;
+  /** Which engine located the regions. */
+  engine?: 'device' | 'roboflow';
+  /** Set when a cloud analysis failed and the on-device result is shown instead. */
+  fallbackFrom?: 'roboflow';
 }
 
 export function toScanReport(a: CaptureAnalysis): ScanReport {
@@ -197,5 +201,6 @@ export function toScanReport(a: CaptureAnalysis): ScanReport {
     urine: a.urine,
     opk: a.opk,
     timingsMs: a.timingsMs,
+    engine: 'device',
   };
 }

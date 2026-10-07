@@ -354,7 +354,7 @@ const en = {
     points: {
       account: { title: 'No account required', body: 'You never sign up, log in or provide an email address to use Lumenova.' },
       backend: { title: 'No backend', body: 'Lumenova is a static website. There is no Lumenova server that receives your health data.' },
-      images: { title: 'No uploaded health images', body: 'Photos are processed in your browser’s memory and discarded after analysis. They are not uploaded and not saved.' },
+      images: { title: 'No uploaded health images by default', body: 'Photos are processed in your browser’s memory and discarded after analysis. They are not saved. They are only sent anywhere if you turn on cloud analysis in Settings, which sends urine strip photos to Roboflow.' },
       local: { title: 'Data stored locally', body: 'Your profile and saved results are kept in this browser’s local storage, on this device only.' },
       clear: { title: 'You can clear it at any time', body: 'Use “Clear my data” on the dashboard or in settings to remove everything Lumenova has stored.' },
       camera: { title: 'Camera used only for scanning', body: 'The camera is switched on only while the scanner is open, and switched off as soon as you capture or leave.' },
@@ -363,6 +363,7 @@ const en = {
     limits: [
       'Local storage is not encrypted by Lumenova. Anyone with access to this device and browser profile could view it.',
       'Clearing your browser data, or using private browsing, can delete your history.',
+      'If you turn on cloud analysis, urine strip photos are sent to Roboflow, a computer-vision service, to locate the test pads. Roboflow’s own terms and privacy policy apply to that processing.',
       'If you use “Find wellness help nearby”, your location or the place you type is sent to OpenStreetMap’s public search services to find places. Opening a directions link shares it with that map service.',
       'Your browser and the host serving this website may keep their own standard technical logs.',
     ],
@@ -538,6 +539,32 @@ const en = {
     reset: 'Reset',
     done: 'Time to read your strip. Photograph it now.',
     remaining: '{time} remaining',
+  },
+
+  roboflow: {
+    settingsTitle: 'Cloud analysis with the trained model',
+    settingsBody: 'Lumenova can send urine strip photos to your Roboflow model, which was trained on real strip photos to find each pad. Colours are still read on this device. When this is on, the photo leaves your device and is processed by Roboflow.',
+    toggle: 'Use the Roboflow model for urine strip scans',
+    keyLabel: 'Roboflow API key',
+    keyHint: 'Use a publishable key (starts with rf_). It is stored only in this browser. Leave empty to use the key built into this site, if any.',
+    keySave: 'Save key',
+    keySaved: 'Key saved in this browser.',
+    keyClear: 'Remove key',
+    keyMissing: 'Add a Roboflow key to turn this on.',
+    keyFromBuild: 'A key is built into this site.',
+    tryModel: 'Analyze with the trained model',
+    tryModelHint: 'Sends this photo to Roboflow to locate the pads.',
+    engineModel: 'Pads located by the trained Roboflow model; colours read on this device',
+    engineDevice: 'Analyzed on this device',
+    fallback: {
+      notConfigured: 'Cloud analysis is not set up, so this photo was analyzed on your device.',
+      auth: 'Roboflow did not accept the API key, so this photo was analyzed on your device. Check the key in Settings.',
+      timeout: 'Roboflow took too long to respond, so this photo was analyzed on your device.',
+      network: 'Roboflow could not be reached, so this photo was analyzed on your device.',
+      server: 'Roboflow had a problem, so this photo was analyzed on your device.',
+      badRequest: 'Roboflow could not process this photo, so it was analyzed on your device.',
+      badResponse: 'Roboflow returned an unexpected answer, so this photo was analyzed on your device.',
+    },
   },
 
   urineTrend: {

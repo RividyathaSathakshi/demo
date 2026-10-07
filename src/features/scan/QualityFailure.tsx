@@ -3,6 +3,7 @@ import { Button } from '../../components/ui';
 import { Icon } from '../../components/Icon';
 import type { PipelineIssue, ScanReport } from '../../cv/pipeline';
 import { RgbaCanvas, quadPoints } from './RgbaCanvas';
+import type { RoboflowErrorKind } from '../../roboflow/client';
 
 type Check = 'strip' | 'entire' | 'brightness' | 'glare' | 'sharpness' | 'orientation' | 'regions' | 'obstruction' | 'color';
 
@@ -22,9 +23,11 @@ interface Props {
   report: ScanReport;
   onRetake: () => void;
   onManual: () => void;
+  onCloud?: () => void;
+  cloudError?: RoboflowErrorKind | null;
 }
 
-export function QualityFailure({ report, onRetake, onManual }: Props) {
+export function QualityFailure({ report, onRetake, onManual, onCloud, cloudError }: Props) {
   const { t } = useI18n();
   const issues = report.issues;
   const stripMissing = issues.includes('noStrip');
@@ -55,14 +58,26 @@ export function QualityFailure({ report, onRetake, onManual }: Props) {
         </div>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+      {cloudError && (
+        <p className="mt-4 flex gap-2 rounded-xl bg-gold/10 p-3 text-label" role="status">
+          <Icon name="info" size={18} className="mt-0.5 shrink-0 text-gold" />
+          {t(`roboflow.fallback.${cloudError}`)}
+        </p>
+      )}
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Button size="lg" icon="camera" onClick={onRetake}>
           {t('common.buttons.retake')}
         </Button>
+        {onCloud && (
+          <Button size="lg" variant="secondary" icon="layers" onClick={onCloud} title={t('roboflow.tryModelHint')}>
+            {t('roboflow.tryModel')}
+          </Button>
+        )}
         <Button size="lg" variant="secondary" icon="edit" onClick={onManual}>
           {t('common.buttons.manualEntry')}
         </Button>
       </div>
+      {onCloud && <p className="mt-2 text-caption text-muted">{t('roboflow.tryModelHint')}</p>}
 
       <div className="mt-10 grid gap-8 md:grid-cols-[1.2fr_1fr]">
         <RgbaCanvas image={report.frame} label={t('detection.imageLabel')} className="overflow-hidden rounded-xl border">

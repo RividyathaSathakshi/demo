@@ -1,0 +1,22 @@
+{
+  "outputs": [
+    {
+      "predictions": {
+        "image": { "width": 3024, "height": 4032 },
+        "predictions": [
+          { "width": 144, "height": 159, "x": 748, "y": 3278.5, "confidence": 0.95263671875, "class_id": 0, "class": "Bilirubin", "detection_id": "355b9ee9-fd58-4051-86f4-8278aa99febf", "parent_id": "image" },
+          { "width": 150, "height": 154, "x": 986, "y": 3303, "confidence": 0.9306640625, "class_id": 3, "class": "Ketone", "detection_id": "e14f0c24-c867-4d72-be48-c7240305ae0b", "parent_id": "image" },
+          { "width": 142, "height": 161, "x": 1467, "y": 3356.5, "confidence": 0.91943359375, "class_id": 1, "class": "Blood", "detection_id": "e7968601-b90e-4f77-80d9-3ff7012737a6", "parent_id": "image" },
+          { "width": 144, "height": 167, "x": 1707, "y": 3378.5, "confidence": 0.9013671875, "class_id": 10, "class": "pH", "detection_id": "6e5fc01a-a94b-484c-8857-2e065da1bcad", "parent_id": "image" },
+          { "width": 144, "height": 161, "x": 1953, "y": 3406.5, "confidence": 0.89990234375, "class_id": 6, "class": "Protein", "detection_id": "290a7aec-e269-4d75-9376-4f0a278593c7", "parent_id": "image" },
+          { "width": 151, "height": 161, "x": 2688.5, "y": 3485.5, "confidence": 0.89892578125, "class_id": 4, "class": "Leukocytes", "detection_id": "2e9857f5-c279-4446-b606-d02a6ad6e50f", "parent_id": "image" },
+          { "width": 150, "height": 157, "x": 2188, "y": 3433.5, "confidence": 0.8955078125, "class_id": 8, "class": "Urobilinogen", "detection_id": "c78ff1f9-dfdf-43e4-915a-e1681ea9a2bc", "parent_id": "image" },
+          { "width": 143, "height": 161, "x": 2437.5, "y": 3460.5, "confidence": 0.8857421875, "class_id": 5, "class": "Nitrite", "detection_id": "d334bdb6-515b-4347-b015-1e70b68e362f", "parent_id": "image" },
+          { "width": 140, "height": 154, "x": 1231, "y": 3331, "confidence": 0.8681640625, "class_id": 7, "class": "SpGravity", "detection_id": "4c950102-30a6-4904-8126-ec5d61491598", "parent_id": "image" },
+          { "width": 140, "height": 156, "x": 508, "y": 3255, "confidence": 0.8671875, "class_id": 2, "class": "Glucose", "detection_id": "2a05cbfa-2e5d-4e09-833e-b10a0c21c009", "parent_id": "image" },
+          { "width": 2669, "height": 386, "x": 1335.5, "y": 3348, "confidence": 0.43212890625, "class_id": 11, "class": "strip", "detection_id": "4a33559c-b3d8-432c-a32b-73015f1f7ff3", "parent_id": "image" }
+        ]
+      }
+    }
+  ]
+}

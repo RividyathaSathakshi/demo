@@ -11,7 +11,7 @@ const DEFAULT_STATE: AppState = {
   version: 1,
   profile: null,
   consentAcceptedAt: null,
-  settings: { theme: 'system', locale: 'en', autoCapture: true },
+  settings: { theme: 'system', locale: 'en', autoCapture: true, cloudAnalysis: false, roboflowKey: '' },
   records: [],
   periodStarts: [],
 };

@@ -33,6 +33,7 @@ export function urineRecordFromReport(report: ScanReport, source: RecordSource):
     orientation: report.orientation ?? undefined,
     angleDeg: report.angleDeg,
     overall: u.overall,
+    engine: report.engine ?? 'device',
     readings: u.readings.map((r) => ({ paramId: r.paramId, levelIndex: r.levelIndex, status: r.status, confidence: r.confidence })),
   };
 }

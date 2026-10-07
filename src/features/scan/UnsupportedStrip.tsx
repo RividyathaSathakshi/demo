@@ -5,7 +5,7 @@ import { SUPPORTED_PAD_COUNTS } from '../../config/strips';
 import type { ScanReport } from '../../cv/pipeline';
 import { RgbaCanvas, quadPoints } from './RgbaCanvas';
 
-export function UnsupportedStrip({ report, onRetake, onManual, onChoose }: { report: ScanReport; onRetake: () => void; onManual: () => void; onChoose: () => void }) {
+export function UnsupportedStrip({ report, onRetake, onManual, onChoose, onCloud }: { report: ScanReport; onRetake: () => void; onManual: () => void; onChoose: () => void; onCloud?: () => void }) {
   const { t } = useI18n();
   return (
     <div className="container-page max-w-4xl py-8 sm:py-12">
@@ -22,6 +22,11 @@ export function UnsupportedStrip({ report, onRetake, onManual, onChoose }: { rep
         <Button size="lg" icon="camera" onClick={onRetake}>
           {t('common.buttons.retake')}
         </Button>
+        {onCloud && (
+          <Button size="lg" variant="secondary" icon="layers" onClick={onCloud} title={t('roboflow.tryModelHint')}>
+            {t('roboflow.tryModel')}
+          </Button>
+        )}
         <Button size="lg" variant="secondary" icon="layers" onClick={onChoose}>
           {t('common.buttons.chooseStrip')}
         </Button>
