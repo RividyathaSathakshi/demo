@@ -9,6 +9,8 @@ import { Precautions } from './Precautions';
 import { NearbyHelp } from './NearbyHelp';
 import { ResultFooter, ResultHeaderMeta, type ResultActions } from './ResultChrome';
 import { RgbaCanvas } from '../scan/RgbaCanvas';
+import { UrineTrends } from '../../components/charts';
+import { useAppState } from '../../store/store';
 
 interface Props extends ResultActions {
   record: UrineRecord;
@@ -26,6 +28,8 @@ export function UrineResultView({ record, report, ...actions }: Props) {
   const c = counts(record.readings);
   const notNormal = record.readings.filter((r) => r.status === 'borderline' || r.status === 'flagged');
   const overall: ScreeningStatus = record.overall;
+  const { records } = useAppState();
+  const trend = [...records.filter((r): r is UrineRecord => r.type === 'urine' && r.id !== record.id), record];
 
   return (
     <div className="container-page max-w-4xl py-8 sm:py-10">
@@ -114,6 +118,13 @@ export function UrineResultView({ record, report, ...actions }: Props) {
             <CheckList items={notNormal.map((r) => <><span className="font-medium">{t(`params.${r.paramId}.name`)}:</span> {t(`params.${r.paramId}.help`)}</>)} icon="info" tone="danger" />
           )}
           <CheckList items={tl('results.seekHelpGeneral')} icon="info" tone="danger" />
+        </div>
+      </section>
+
+      <section aria-labelledby="trend-h" className="mt-10 rounded-2xl border bg-panel p-5">
+        <h2 id="trend-h" className="text-h3">{t('urineTrend.yourTrend')}</h2>
+        <div className="mt-3">
+          <UrineTrends records={trend} compact />
         </div>
       </section>
 

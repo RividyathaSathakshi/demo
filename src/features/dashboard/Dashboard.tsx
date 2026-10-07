@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useI18n } from '../../i18n';
 import { ButtonLink, StatusBadge, Disclaimer } from '../../components/ui';
 import { Icon } from '../../components/Icon';
-import { LhTrendChart, UrineTrendGrid } from '../../components/charts';
+import { LhTrendChart, UrineTrends } from '../../components/charts';
 import { sortedRecords, useAppState } from '../../store/store';
 import type { OpkRecord, TestRecord, UrineRecord } from '../../store/types';
 import { FertilityPanel } from '../results/FertilityPanel';
@@ -27,7 +27,7 @@ export default function Dashboard() {
   function buildReminders(): string[] {
     const out: string[] = [];
     if (showFertility && cycle) {
-      if (cycle.phase === 'fertile') out.push(t('dashboard.reminders.inWindow'));
+      if (cycle.inFertileWindow) out.push(t('dashboard.reminders.inWindow'));
       else if (diffDays(cycle.fertileStart, today) > 0 && diffDays(cycle.fertileStart, today) <= 5)
         out.push(t('dashboard.reminders.testOpk', { date: formatDate(cycle.fertileStart, { day: 'numeric', month: 'short' }) }));
       if (cycle.daysUntilNextPeriod > 0 && cycle.daysUntilNextPeriod <= 3) out.push(t('dashboard.reminders.period', { n: cycle.daysUntilNextPeriod }));
@@ -81,12 +81,11 @@ export default function Dashboard() {
               </div>
             </section>
           )}
-          {showUrine && urine.length > 0 && (
+          {showUrine && (
             <section className="rounded-2xl border bg-panel p-5" aria-labelledby="ut-h">
-              <h2 id="ut-h" className="text-h3">{t('dashboard.urineTrend')}</h2>
-              <p className="text-label text-muted">{t('dashboard.urineTrendLead')}</p>
+              <h2 id="ut-h" className="text-h3">{t('urineTrend.title')}</h2>
               <div className="mt-3">
-                <UrineTrendGrid records={urine} />
+                <UrineTrends records={urine} />
               </div>
             </section>
           )}

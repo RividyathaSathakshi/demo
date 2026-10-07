@@ -9,6 +9,8 @@ import { runScan } from '../../cv/runScan';
 import { addRecord } from '../../store/store';
 import type { RecordSource, TestRecord } from '../../store/types';
 import { CaptureInstructions } from './CaptureInstructions';
+import { useCountdown, TimerChip } from './TestTimer';
+import { TIMER_PRESETS } from './TakeTest';
 import { CameraView, type CameraError } from './CameraView';
 import { QualityFailure } from './QualityFailure';
 import { UnsupportedStrip } from './UnsupportedStrip';
@@ -20,7 +22,7 @@ import { UrineResultView } from '../results/UrineResultView';
 import { OpkResultView } from '../results/OpkResultView';
 
 type Step =
-  | { kind: 'instructions' }
+  | { kind: 'instructions'; step?: 1 | 2 }
   | { kind: 'camera' }
   | { kind: 'cameraError'; error: CameraError }
   | { kind: 'checking' }
@@ -46,6 +48,7 @@ function Flow({ module }: { module: ScanModule }) {
   const frameRef = useRef<{ image: RGBAImage; source: RecordSource } | null>(null);
   const optionsRef = useRef<CaptureOptions>({});
   const fileRef = useRef<HTMLInputElement>(null);
+  const timer = useCountdown(TIMER_PRESETS[module][0]);
 
   const toRecord = useCallback(
     (report: ScanReport, source: RecordSource): TestRecord =>
@@ -97,14 +100,19 @@ function Flow({ module }: { module: ScanModule }) {
       return (
         <>
           {fileInput}
-          <CaptureInstructions module={module} onStart={() => setStep({ kind: 'camera' })} onUpload={upload} onSample={sample} onManual={() => toManual('denied')} />
+          <CaptureInstructions module={module} timer={timer} initialStep={step.step} onStart={() => setStep({ kind: 'camera' })} onUpload={upload} onSample={sample} onManual={() => toManual('denied')} />
         </>
       );
     case 'camera':
       return (
         <>
           {fileInput}
-          <CameraView module={module} onCapture={onCapture} onError={onCameraError} onClose={() => setStep({ kind: 'instructions' })} onUpload={upload} onManual={() => toManual('denied')} />
+          <CameraView module={module} onCapture={onCapture} onError={onCameraError} onClose={() => setStep({ kind: 'instructions', step: 2 })} onUpload={upload} onManual={() => toManual('denied')} />
+          <div className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top,0px)+7.5rem)] z-[60] flex justify-center">
+            <div className="bg-panel/90 rounded-full">
+              <TimerChip timer={timer} />
+            </div>
+          </div>
         </>
       );
     case 'cameraError':

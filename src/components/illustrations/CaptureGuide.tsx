@@ -4,7 +4,7 @@ import { StripArt, SAMPLE_PADS } from './StripArt';
 
 type Bad = 'cut' | 'shadow' | 'glare' | 'blur' | 'finger' | 'angle';
 
-function Scene({ variant }: { variant: 'good' | Bad }) {
+function Scene({ variant, kind }: { variant: 'good' | Bad; kind: 'urine' | 'opk' }) {
   const pads = SAMPLE_PADS[5];
   return (
     <svg viewBox="0 0 160 110" className="block h-auto w-full rounded-lg" aria-hidden="true">
@@ -26,21 +26,21 @@ function Scene({ variant }: { variant: 'good' | Bad }) {
       <g filter={variant === 'blur' ? `url(#blur-${variant})` : undefined}>
         {variant === 'angle' ? (
           <g transform="translate(80 58) scale(1 0.55) skewX(-28)">
-            <StripArt pads={pads} length={120} />
+            <StripArt pads={pads} kind={kind} length={120} />
           </g>
         ) : (
-          <StripArt pads={pads} cx={variant === 'cut' ? 118 : 80} cy={55} length={124} />
+          <StripArt pads={pads} kind={kind} cx={variant === 'cut' ? 118 : 80} cy={55} length={kind === 'opk' ? 136 : 124} />
         )}
       </g>
       {variant === 'shadow' && <rect width="110" height="110" fill="url(#shadow-g)" />}
       {variant === 'glare' && <ellipse cx="88" cy="52" rx="34" ry="24" fill="url(#glare-g)" />}
-      {variant === 'finger' && <ellipse cx="96" cy="64" rx="15" ry="26" fill="#D9A585" stroke="#B9846A" />}
+      {variant === 'finger' && <ellipse cx={kind === 'opk' ? 60 : 96} cy="64" rx="15" ry="26" fill="#D9A585" stroke="#B9846A" />}
       {variant === 'good' && <rect x="8" y="8" width="144" height="94" rx="8" fill="none" stroke="#5FB894" strokeWidth="2" strokeDasharray="5 4" />}
     </svg>
   );
 }
 
-export function CaptureGuide() {
+export function CaptureGuide({ kind = 'urine' }: { kind?: 'urine' | 'opk' }) {
   const { t, tl } = useI18n();
   const bad = tl('instructions.bad');
   const variants: Bad[] = ['cut', 'shadow', 'glare', 'blur', 'finger', 'angle'];
@@ -51,7 +51,7 @@ export function CaptureGuide() {
           <Icon name="checkCircle" className="text-success" size={24} /> {t('instructions.goodTitle')}
         </h3>
         <div className="mt-3">
-          <Scene variant="good" />
+          <Scene variant="good" kind={kind} />
         </div>
         <ul className="mt-3 space-y-1.5 text-label">
           {tl('instructions.good').map((g) => (
@@ -68,7 +68,7 @@ export function CaptureGuide() {
         <ul className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {variants.map((v, i) => (
             <li key={v}>
-              <Scene variant={v} />
+              <Scene variant={v} kind={kind} />
               <p className="mt-1.5 flex items-start gap-1.5 text-caption">
                 <Icon name="close" size={14} className="mt-[1px] shrink-0 text-danger" /> {bad[i]}
               </p>

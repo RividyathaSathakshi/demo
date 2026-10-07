@@ -2,7 +2,8 @@ import { useI18n } from '../../i18n';
 import { ButtonLink } from '../../components/ui';
 import { Icon } from '../../components/Icon';
 import { CycleRing } from '../../components/CycleRing';
-import { computeCycle } from '../../health/cycle';
+import { computeCycle, opkStartDate } from '../../health/cycle';
+import { PhaseTimeline } from '../../components/PhaseTimeline';
 import { diffDays, todayKey } from '../../health/dates';
 import type { Profile, TestRecord } from '../../store/types';
 
@@ -33,13 +34,15 @@ export function FertilityPanel({ profile, records, periodStarts, compact = false
         : cycle.daysUntilNextPeriod === 0
           ? t('cycle.dueToday')
           : t('cycle.overdue', { n: -cycle.daysUntilNextPeriod });
+  const opkStart = opkStartDate(cycle);
   return (
+    <div className="space-y-6">
     <div className={`grid items-center gap-6 ${compact ? 'sm:grid-cols-[auto_1fr]' : 'md:grid-cols-[auto_1fr]'}`}>
       <div className="flex justify-center">
         <CycleRing
           day={cycle.cycleDay}
           length={cycle.cycleLength}
-          periodLength={profile.periodLength}
+          periodLength={cycle.window.periodLength}
           fertileStart={fs}
           fertileEnd={fe}
           ovulationDay={ov}
@@ -51,6 +54,11 @@ export function FertilityPanel({ profile, records, periodStarts, compact = false
         />
       </div>
       <dl className="grid gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <dt className="text-label text-muted">{t('cycle.currentPhase')}</dt>
+          <dd className="font-display text-h3">{t(`cycle.phase.${cycle.phase}`)}</dd>
+          <dd className="text-label text-muted">{t(`cycle.phaseAbout.${cycle.phase}`)}</dd>
+        </div>
         <div>
           <dt className="text-label text-muted">{t('cycle.cycleDay')}</dt>
           <dd className="font-display text-h3">{t('cycle.dayOf', { day: cycle.cycleDay, length: cycle.cycleLength })}</dd>
@@ -79,6 +87,21 @@ export function FertilityPanel({ profile, records, periodStarts, compact = false
           </dd>
         </div>
       </dl>
+    </div>
+      {diffDays(opkStart, today) >= 0 && (
+        <p className="flex gap-2 text-label">
+          <Icon name="bloom" size={18} className="shrink-0 text-rose" />
+          {t('cycle.opkStart', { date: fmt(opkStart), day: diffDays(opkStart, cycle.cycleStart) + 1 })}
+        </p>
+      )}
+      {!compact && (
+        <div>
+          <h3 className="text-h3">{t('cycle.phasesTitle')}</h3>
+          <div className="mt-2">
+            <PhaseTimeline window={cycle.window} today={today} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

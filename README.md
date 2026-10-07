@@ -85,7 +85,7 @@ Strip layouts are data in `src/config/strips.ts`. The prototype ships 2-, 3-, 4-
 - Photos are processed in memory and discarded. They are never uploaded or stored.
 - Profile and saved results live in one `localStorage` entry (`lumenova.v1`) on this device. "Clear my data" removes it.
 - Fonts are self-hosted, so no third-party requests are made on page load.
-- "Find wellness help nearby" asks for location permission, builds a search link and opens an external map only when the user clicks it. The prototype does not list providers.
+- "Find wellness help nearby" lists clinics, hospitals, pharmacies and women's health services from OpenStreetMap. It asks for location permission (or the user types a place), then the browser sends that location directly to OpenStreetMap's public Overpass and Nominatim services. Lumenova does not store it. The Privacy page says so.
 
 Local storage is not encrypted by Lumenova; the Privacy page says so plainly.
 
