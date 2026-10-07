@@ -35,6 +35,9 @@ export default function ContactPage() {
           <Button type="submit" icon="mail">
             {t('contact.send')}
           </Button>
+          <p className="text-label text-muted">
+            {t('contact.direct')} <span className="select-all font-medium text-ink">{CONTACT_EMAIL}</span>
+          </p>
         </form>
         <aside className="self-start rounded-2xl bg-panel-alt/70 p-6">
           <Icon name="pin" size={28} className="text-rose" />

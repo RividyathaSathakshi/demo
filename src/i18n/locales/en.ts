@@ -385,6 +385,7 @@ const en = {
     message: 'Message',
     send: 'Open in my email app',
     note: 'This prototype has no server, so the message opens in your own email app. Please do not include personal health details.',
+    direct: 'You can also write to us directly at',
     exhibitionTitle: 'At the exhibition',
     exhibitionBody: 'Visit the Lumenova stand to try the scanner with sample strips and talk to the team.',
     emailSubject: 'Lumenova feedback',
@@ -480,7 +481,7 @@ const en = {
     errors: {
       denied: {
         title: 'Camera access was not allowed',
-        body: 'You can allow camera access in your browser settings and try again, use a photo instead, or enter your result manually.',
+        body: 'The camera was blocked, either in your browser settings or by the page this app is running in. You can take or choose a photo instead, enter your result manually, or allow camera access and try again.',
       },
       notFound: {
         title: 'No camera was found',

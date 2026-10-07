@@ -49,7 +49,6 @@ export default function HowItWorksPage() {
           <div className="grain overflow-hidden rounded-2xl bg-[#2F3750]">
             <svg viewBox="0 0 400 300" className="block h-auto w-full" role="img" aria-label={t('detection.imageLabel')}>
               <StripArt pads={SAMPLE_PADS[10]} cx={200} cy={150} angle={-38} length={340} showOutline showBoxes outlineColor="#F3EFE6" boxColor="#5FB894" />
-              <rect x="0" y="0" width="400" height="300" fill="url(#sweep)" opacity="0" />
             </svg>
           </div>
         </div>
