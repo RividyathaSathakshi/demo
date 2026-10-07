@@ -1,7 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import fixture from './__fixtures__/workflow-response.json';
 import { parseWorkflowDetections } from './parse';
-import { RoboflowError, runUrineStripWorkflow } from './client';
+import { RoboflowError, resetAuthPreference, runUrineStripWorkflow } from './client';
 import { analyzeWithDetections } from '../cv/roboflowAnalysis';
 import { renderSyntheticStrip } from '../cv/synthetic';
 import { URINE_PARAMETERS, getUrineProduct } from '../config/strips';
@@ -28,6 +28,7 @@ describe('Roboflow workflow response parsing', () => {
 
 describe('Roboflow client', () => {
   const ok = () => new Response(JSON.stringify(fixture), { status: 200 });
+  beforeEach(() => resetAuthPreference());
 
   it('sends the key as a Bearer header and the image as an input', async () => {
     const fetchImpl = vi.fn(async () => ok());
@@ -47,10 +48,26 @@ describe('Roboflow client', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
-  it('does not retry auth errors and raises a typed error', async () => {
-    const fetchImpl = vi.fn(async () => new Response('', { status: 401 }));
+  it('falls back to the documented api_key body field when the header is rejected, and remembers it', async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(new Response('', { status: 401 })).mockImplementation(async () => ok());
+    await runUrineStripWorkflow({ type: 'base64', value: 'a' }, { apiKey: 'rf_x', fetchImpl });
+    const second = fetchImpl.mock.calls[1][1] as RequestInit;
+    expect(JSON.parse(second.body as string).api_key).toBe('rf_x');
+    expect((second.headers as Record<string, string>).Authorization).toBeUndefined();
+    await runUrineStripWorkflow({ type: 'base64', value: 'a' }, { apiKey: 'rf_x', fetchImpl });
+    expect(fetchImpl).toHaveBeenCalledTimes(3); // third call went straight to the body method
+  });
+
+  it('falls back when the browser blocks the header (network error)', async () => {
+    const fetchImpl = vi.fn().mockRejectedValueOnce(new TypeError('Failed to fetch')).mockImplementation(async () => ok());
+    const out = await runUrineStripWorkflow({ type: 'base64', value: 'a' }, { apiKey: 'rf_x', fetchImpl });
+    expect(out).toHaveLength(1);
+  });
+
+  it('raises a typed auth error when both methods are rejected', async () => {
+    const fetchImpl = vi.fn(async () => new Response('', { status: 403 }));
     await expect(runUrineStripWorkflow({ type: 'base64', value: 'a' }, { apiKey: 'bad', fetchImpl })).rejects.toMatchObject({ kind: 'auth' });
-    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
 
   it('refuses to run without a key', async () => {

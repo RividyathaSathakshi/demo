@@ -584,6 +584,8 @@ const en = {
     starting: 'Starting camera',
     videoLabel: 'Live camera view',
     frameHint: 'Place the strip anywhere in view, in any direction',
+    tapAnyway: 'When the whole strip is sharp and in view, tap the button to capture.',
+    tapAnywayModel: 'When the whole strip is sharp and in view, tap the button. The trained model will find the pads.',
     capture: 'Capture photo',
     autoCapture: 'Auto-capture when ready',
     capturing: 'Capturing',

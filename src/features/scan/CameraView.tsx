@@ -39,6 +39,7 @@ export function CameraView({ module, onCapture, onError, onClose, onUpload, onMa
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const [stable, setStable] = useState(0);
   const [announce, setAnnounce] = useState<GuidanceKey | null>(null);
+  const [slow, setSlow] = useState(false);
   // Keep the latest callbacks without restarting the camera when they change.
   const onErrorRef = useRef(onError);
   const onCaptureRef = useRef(onCapture);
@@ -126,6 +127,17 @@ export function CameraView({ module, onCapture, onError, onClose, onUpload, onMa
   }, [starting, module]);
 
   const ready = stable >= READY_FRAMES;
+
+  // If guidance has not reached "ready" after a few seconds, invite a manual capture.
+  useEffect(() => {
+    if (starting || ready) {
+      setSlow(false);
+      return;
+    }
+    const id = window.setTimeout(() => setSlow(true), 5000);
+    return () => window.clearTimeout(id);
+  }, [starting, ready]);
+  const cloudOn = module === 'urine' && settings.cloudAnalysis;
   const key: GuidanceKey = ready ? 'ready' : live?.key ?? 'center';
 
   // Auto-capture once the strip has been steady and ready for a moment.
@@ -195,8 +207,13 @@ export function CameraView({ module, onCapture, onError, onClose, onUpload, onMa
           </div>
           <span className="w-12" />
         </div>
-        {!live?.stripFound && !starting && (
-          <p className="absolute inset-x-0 bottom-6 text-center text-label text-[#F3EFE6]/85">{t('camera.frameHint')}</p>
+        {slow ? (
+          <p className="absolute inset-x-4 bottom-4 rounded-xl bg-[#14182A]/85 px-4 py-2.5 text-center text-label text-[#F3EFE6]" role="status">
+            {t(cloudOn ? 'camera.tapAnywayModel' : 'camera.tapAnyway')}
+          </p>
+        ) : (
+          !live?.stripFound &&
+          !starting && <p className="absolute inset-x-0 bottom-6 text-center text-label text-[#F3EFE6]/85">{t('camera.frameHint')}</p>
         )}
         <p className="sr-only" aria-live="polite">
           {announce ? t(`guidance.${announce}`) : ''}

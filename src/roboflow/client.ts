@@ -7,6 +7,12 @@
  *
  * The response is { outputs: [ { <outputName>: ... } ] }: one entry per input
  * image, keyed by the workflow's own output names.
+ *
+ * Auth: the key is sent as `Authorization: Bearer` first. Roboflow's documented
+ * method for Workflow calls is `"api_key"` in the JSON body, and some
+ * deployments (or a browser's CORS rules) reject the header, so on an auth or
+ * network failure the client retries once with the key in the body and
+ * remembers which method worked. Use only a publishable key in browser builds.
  */
 import { ROBOFLOW_WORKFLOW_URL } from './config';
 
@@ -37,9 +43,17 @@ export interface RunWorkflowOptions {
 
 const RETRYABLE = new Set(['timeout', 'network', 'server']);
 
+type AuthMode = 'header' | 'body';
+let preferredAuth: AuthMode = 'header';
+
+/** For tests. */
+export function resetAuthPreference() {
+  preferredAuth = 'header';
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function attempt(image: RoboflowImageInput, opts: RunWorkflowOptions): Promise<Record<string, unknown>[]> {
+async function attempt(image: RoboflowImageInput, opts: RunWorkflowOptions, auth: AuthMode): Promise<Record<string, unknown>[]> {
   const ctl = new AbortController();
   const onAbort = () => ctl.abort();
   opts.signal?.addEventListener('abort', onAbort);
@@ -48,8 +62,8 @@ async function attempt(image: RoboflowImageInput, opts: RunWorkflowOptions): Pro
   try {
     res = await (opts.fetchImpl ?? fetch)(ROBOFLOW_WORKFLOW_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${opts.apiKey}` },
-      body: JSON.stringify({ inputs: { image, ...(opts.parameters ?? {}) } }),
+      headers: auth === 'header' ? { 'Content-Type': 'application/json', Authorization: `Bearer ${opts.apiKey}` } : { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...(auth === 'body' ? { api_key: opts.apiKey } : {}), inputs: { image, ...(opts.parameters ?? {}) } }),
       signal: ctl.signal,
     });
   } catch {
@@ -83,13 +97,24 @@ async function attempt(image: RoboflowImageInput, opts: RunWorkflowOptions): Pro
 export async function runUrineStripWorkflow(image: RoboflowImageInput, opts: RunWorkflowOptions): Promise<Record<string, unknown>[]> {
   if (!opts.apiKey) throw new RoboflowError('notConfigured', 'No Roboflow API key is configured');
   const retries = opts.retries ?? 2;
-  for (let i = 0; ; i++) {
-    try {
-      return await attempt(image, opts);
-    } catch (e) {
-      const err = e as RoboflowError;
-      if (i >= retries || !RETRYABLE.has(err.kind) || opts.signal?.aborted) throw err;
-      await sleep(800 * 2 ** i);
+  const modes: AuthMode[] = preferredAuth === 'header' ? ['header', 'body'] : ['body'];
+  let lastError: RoboflowError | null = null;
+  for (const mode of modes) {
+    for (let i = 0; ; i++) {
+      try {
+        const out = await attempt(image, opts, mode);
+        preferredAuth = mode;
+        return out;
+      } catch (e) {
+        const err = e as RoboflowError;
+        lastError = err;
+        if (opts.signal?.aborted) throw err;
+        // A rejected or blocked header: switch to the documented body method straight away.
+        if (mode === 'header' && (err.kind === 'auth' || err.kind === 'network')) break;
+        if (i >= retries || !RETRYABLE.has(err.kind)) throw err;
+        await sleep(800 * 2 ** i);
+      }
     }
   }
+  throw lastError ?? new RoboflowError('network', 'Could not reach Roboflow');
 }

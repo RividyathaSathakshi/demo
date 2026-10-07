@@ -89,7 +89,7 @@ Lumenova can use the YOLO26s model trained in Roboflow to find the urine strip p
 - **Output:** `predictions`, one box per pad (`Glucose`, `Bilirubin`, `Ketone`, `SpGravity`, `Blood`, `pH`, `Protein`, `Urobilinogen`, `Nitrite`, `Leukocytes`) plus `strip` and `background`
 
 **How it is wired:**
-- `src/roboflow/client.ts` makes the call: `POST https://serverless.roboflow.com/sathakshi2-gmail-com/workflows/<workflow-id>` with `Authorization: Bearer <key>` and `{ "inputs": { "image": { "type": "base64", "value": ... } } }`. It has a 30 s timeout, 2 retries with backoff for network, timeout and 5xx/429 errors, and typed `RoboflowError` errors.
+- `src/roboflow/client.ts` makes the call: `POST https://serverless.roboflow.com/sathakshi2-gmail-com/workflows/<workflow-id>` with `{ "inputs": { "image": { "type": "base64", "value": ... } } }`. The key goes in `Authorization: Bearer <key>` first; if Roboflow or the browser rejects that header, the client retries with `"api_key"` in the JSON body (Roboflow's documented Workflow method) and remembers which one worked. It has a 30 s timeout, 2 retries with backoff for network, timeout and 5xx/429 errors, and typed `RoboflowError` errors.
 - `src/roboflow/parse.ts` finds the detections output defensively, from the real response captured in `src/roboflow/__fixtures__/workflow-response.json`.
 - `src/cv/roboflowAnalysis.ts` maps the model's classes to parameters, samples each pad, white-balances it against the strip backing, and matches it to the reference chart.
 - `src/roboflow/cloudScan.ts` is the browser glue: it downscales the photo to at most 1600 px, sends it as JPEG, and keeps only the boxes.
