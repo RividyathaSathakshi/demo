@@ -6,10 +6,7 @@ import { Icon } from '../../components/Icon';
 import type { RGBAImage } from '../../cv/image';
 import type { CaptureOptions, ScanModule, ScanReport } from '../../cv/pipeline';
 import { runScan } from '../../cv/runScan';
-import { addRecord, useAppState } from '../../store/store';
-import { runCloudUrineScan } from '../../roboflow/cloudScan';
-import { RoboflowError, type RoboflowErrorKind } from '../../roboflow/client';
-import { resolveRoboflowKey } from '../../roboflow/config';
+import { addRecord } from '../../store/store';
 import type { RecordSource, TestRecord } from '../../store/types';
 import { CaptureInstructions } from './CaptureInstructions';
 import { useCountdown, TimerChip } from './TestTimer';
@@ -52,10 +49,6 @@ function Flow({ module }: { module: ScanModule }) {
   const optionsRef = useRef<CaptureOptions>({});
   const fileRef = useRef<HTMLInputElement>(null);
   const timer = useCountdown(TIMER_PRESETS[module][0]);
-  const { settings } = useAppState();
-  const roboflowKey = resolveRoboflowKey(settings.roboflowKey);
-  const cloudAvailable = module === 'urine' && !!roboflowKey;
-  const [cloudError, setCloudError] = useState<RoboflowErrorKind | null>(null);
 
   const toRecord = useCallback(
     (report: ScanReport, source: RecordSource): TestRecord =>
@@ -64,33 +57,18 @@ function Flow({ module }: { module: ScanModule }) {
   );
 
   const analyze = useCallback(
-    async (image: RGBAImage, source: RecordSource, options: CaptureOptions & { engine?: 'device' | 'roboflow' } = {}, skipReveal = false) => {
+    async (image: RGBAImage, source: RecordSource, options: CaptureOptions = {}, skipReveal = false) => {
       frameRef.current = { image, source };
       optionsRef.current = options;
       setStep({ kind: 'checking' });
-      setCloudError(null);
-      // The trained model is used for real urine photos when the user opted in
-      // (or asked for it on this scan). Simulated samples always stay on-device.
-      const wantCloud =
-        cloudAvailable && source !== 'sample' && (options.engine === 'roboflow' || (options.engine !== 'device' && settings.cloudAnalysis));
-      let report: ScanReport;
-      if (wantCloud) {
-        try {
-          report = await runCloudUrineScan(image, roboflowKey);
-        } catch (e) {
-          setCloudError(e instanceof RoboflowError ? e.kind : 'network');
-          report = { ...(await runScan(image, module, options)), fallbackFrom: 'roboflow' };
-        }
-      } else {
-        report = await runScan(image, module, options);
-      }
+      const report = await runScan(image, module, options);
       if (report.ok) {
         const record = toRecord(report, source);
         setStep(skipReveal ? { kind: 'result', report, record, saved: false } : { kind: 'reveal', report });
       } else if (report.issues.includes('unsupportedLayout')) setStep({ kind: 'unsupported', report });
       else setStep({ kind: 'quality', report });
     },
-    [module, toRecord, cloudAvailable, roboflowKey, settings.cloudAnalysis],
+    [module, toRecord],
   );
 
   const onCapture = useCallback((image: RGBAImage) => analyze(image, 'camera'), [analyze]);
@@ -160,25 +138,9 @@ function Flow({ module }: { module: ScanModule }) {
     case 'checking':
       return <CheckingOverlay />;
     case 'quality':
-      return (
-        <QualityFailure
-          report={step.report}
-          onRetake={retake}
-          onManual={() => toManual('quality')}
-          cloudError={cloudError}
-          onCloud={cloudAvailable && step.report.engine !== 'roboflow' && frameRef.current ? () => analyze(frameRef.current!.image, frameRef.current!.source, { engine: 'roboflow' }) : undefined}
-        />
-      );
+      return <QualityFailure report={step.report} onRetake={retake} onManual={() => toManual('quality')} />;
     case 'unsupported':
-      return (
-        <UnsupportedStrip
-          report={step.report}
-          onRetake={retake}
-          onManual={() => toManual('unsupported')}
-          onChoose={() => toManual('unsupported')}
-          onCloud={cloudAvailable && step.report.engine !== 'roboflow' && frameRef.current ? () => analyze(frameRef.current!.image, frameRef.current!.source, { engine: 'roboflow' }) : undefined}
-        />
-      );
+      return <UnsupportedStrip report={step.report} onRetake={retake} onManual={() => toManual('unsupported')} onChoose={() => toManual('unsupported')} />;
     case 'reveal':
       return (
         <DetectionReveal
@@ -196,7 +158,7 @@ function Flow({ module }: { module: ScanModule }) {
         },
         onRetake: retake,
       };
-      if (step.record.type === 'urine') return <UrineResultView record={step.record} report={step.report} cloudError={cloudError} {...actions} />;
+      if (step.record.type === 'urine') return <UrineResultView record={step.record} report={step.report} {...actions} />;
       return (
         <OpkResultView
           record={step.record}

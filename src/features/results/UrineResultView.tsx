@@ -8,15 +8,13 @@ import { levelLabel, productName, readingLabel } from './format';
 import { Precautions } from './Precautions';
 import { NearbyHelp } from './NearbyHelp';
 import { ResultFooter, ResultHeaderMeta, type ResultActions } from './ResultChrome';
-import { RgbaCanvas, quadPoints } from '../scan/RgbaCanvas';
+import { RgbaCanvas } from '../scan/RgbaCanvas';
 import { UrineTrends } from '../../components/charts';
-import type { RoboflowErrorKind } from '../../roboflow/client';
 import { useAppState } from '../../store/store';
 
 interface Props extends ResultActions {
   record: UrineRecord;
   report?: ScanReport;
-  cloudError?: RoboflowErrorKind | null;
 }
 
 function counts(readings: UrineReadingRecord[]) {
@@ -25,7 +23,7 @@ function counts(readings: UrineReadingRecord[]) {
   return c;
 }
 
-export function UrineResultView({ record, report, cloudError, ...actions }: Props) {
+export function UrineResultView({ record, report, ...actions }: Props) {
   const { t, tl } = useI18n();
   const c = counts(record.readings);
   const notNormal = record.readings.filter((r) => r.status === 'borderline' || r.status === 'flagged');
@@ -59,16 +57,6 @@ export function UrineResultView({ record, report, cloudError, ...actions }: Prop
             </>
           )}
         </p>
-        {record.engine === 'roboflow' && (
-          <p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-success/10 px-3 py-1.5 text-label">
-            <Icon name="layers" size={16} className="text-success" /> {t('roboflow.engineModel')}
-          </p>
-        )}
-        {cloudError && (
-          <p className="mt-3 flex gap-2 rounded-lg bg-gold/10 px-3 py-1.5 text-label" role="status">
-            <Icon name="info" size={16} className="mt-0.5 shrink-0 text-gold" /> {t(`roboflow.fallback.${cloudError}`)}
-          </p>
-        )}
         {record.source === 'sample' && (
           <p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-gold/10 px-3 py-1.5 text-label">
             <Icon name="sparkle" size={16} className="text-gold" /> {t('results.sampleNote')}
@@ -81,27 +69,6 @@ export function UrineResultView({ record, report, cloudError, ...actions }: Prop
       </div>
 
       {report?.strip && report.urine && <StripReadout report={report} />}
-      {report && !report.strip && report.engine === 'roboflow' && (
-        <section className="mt-8 rounded-2xl border bg-panel p-4" aria-label={t('detection.imageLabel')}>
-          <RgbaCanvas image={report.frame} label={t('detection.imageLabel')} className="overflow-hidden rounded-lg">
-            {report.stripCorners && <polygon points={quadPoints(report.stripCorners)} fill="none" stroke="#F3EFE6" strokeWidth={Math.max(2, report.frame.width / 300)} />}
-            {report.overlays.map((o, i) => (
-              <polygon key={i} points={quadPoints(o.quad)} fill="none" stroke="#5FB894" strokeWidth={Math.max(2, report.frame.width / 300)} />
-            ))}
-          </RgbaCanvas>
-          <ul className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-10">
-            {report.urine?.readings.filter((r) => r.regionIndex >= 0).map((r) => (
-              <li key={r.paramId} className="text-center text-[11px] leading-tight">
-                <span className="flex h-8 overflow-hidden rounded border border-black/10">
-                  <span className="flex-1" style={{ background: r.measuredHex }} title={t('results.measuredColour')} />
-                  <span className="flex-1" style={{ background: r.levelIndex !== null ? URINE_PARAMETERS[r.paramId].levels[r.levelIndex].color : 'transparent' }} title={t('results.referenceChart')} />
-                </span>
-                <span className="mt-1 block truncate">{t(`params.${r.paramId}.name`)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {/* Result */}
       <section aria-labelledby="result-h" className="mt-10">

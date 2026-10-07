@@ -4,8 +4,7 @@ import { useI18n } from '../../i18n';
 import { Button, Field } from '../../components/ui';
 import { Icon } from '../../components/Icon';
 import { LanguageSwitcher, ThemeToggle } from '../../components/Controls';
-import { saveProfile, updateSettings, useAppState } from '../../store/store';
-import { buildTimeRoboflowKey, resolveRoboflowKey } from '../../roboflow/config';
+import { saveProfile, useAppState } from '../../store/store';
 import type { HealthGoal, TrackingChoice } from '../../store/types';
 import { ClearDataButton } from './ClearData';
 import { todayKey } from '../../health/dates';
@@ -97,8 +96,6 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <RoboflowSettings />
-
       <section className="mt-12 space-y-3 border-t pt-8" aria-labelledby="priv-h">
         <h2 id="priv-h" className="text-h2">{t('settings.privacyTitle')}</h2>
         <p className="flex items-center gap-2">
@@ -112,82 +109,5 @@ export default function SettingsPage() {
         </div>
       </section>
     </div>
-  );
-}
-
-function RoboflowSettings() {
-  const { t } = useI18n();
-  const { settings } = useAppState();
-  const [draft, setDraft] = useState(settings.roboflowKey);
-  const [saved, setSaved] = useState(false);
-  const hasKey = !!resolveRoboflowKey(settings.roboflowKey);
-  const fromBuild = !settings.roboflowKey && !!buildTimeRoboflowKey();
-  return (
-    <section className="mt-12 space-y-4 border-t pt-8" aria-labelledby="rf-h">
-      <h2 id="rf-h" className="text-h2">{t('roboflow.settingsTitle')}</h2>
-      <p className="max-w-prose text-muted">{t('roboflow.settingsBody')}</p>
-      <label className={`flex items-start gap-3 rounded-xl border bg-panel p-4 ${hasKey ? 'cursor-pointer' : 'opacity-60'}`}>
-        <input
-          type="checkbox"
-          className="mt-1 h-5 w-5 shrink-0 accent-[rgb(var(--ink))]"
-          checked={settings.cloudAnalysis && hasKey}
-          disabled={!hasKey}
-          onChange={(e) => updateSettings({ cloudAnalysis: e.target.checked })}
-        />
-        <span>
-          <span className="block font-medium">{t('roboflow.toggle')}</span>
-          {!hasKey && <span className="text-label text-muted">{t('roboflow.keyMissing')}</span>}
-          {fromBuild && <span className="text-label text-muted">{t('roboflow.keyFromBuild')}</span>}
-        </span>
-      </label>
-      <form
-        className="max-w-xl"
-        onSubmit={(e) => {
-          e.preventDefault();
-          updateSettings({ roboflowKey: draft.trim() });
-          setSaved(true);
-        }}
-      >
-        <Field label={t('roboflow.keyLabel')} htmlFor="rf-key" hint={t('roboflow.keyHint')}>
-          <div className="flex gap-2">
-            <input
-              id="rf-key"
-              type="password"
-              autoComplete="off"
-              spellCheck={false}
-              className="field min-w-0 font-mono"
-              value={draft}
-              placeholder="rf_..."
-              onChange={(e) => {
-                setDraft(e.target.value);
-                setSaved(false);
-              }}
-            />
-            <Button type="submit" variant="secondary">{t('roboflow.keySave')}</Button>
-          </div>
-        </Field>
-        <div className="mt-2 flex items-center gap-4">
-          {saved && (
-            <p className="flex items-center gap-1.5 text-label" role="status">
-              <Icon name="checkCircle" size={16} className="text-success" /> {t('roboflow.keySaved')}
-            </p>
-          )}
-          {settings.roboflowKey && (
-            <Button
-              variant="ghost"
-              size="sm"
-              icon="trash"
-              onClick={() => {
-                updateSettings({ roboflowKey: '', cloudAnalysis: !!buildTimeRoboflowKey() && settings.cloudAnalysis });
-                setDraft('');
-                setSaved(false);
-              }}
-            >
-              {t('roboflow.keyClear')}
-            </Button>
-          )}
-        </div>
-      </form>
-    </section>
   );
 }
