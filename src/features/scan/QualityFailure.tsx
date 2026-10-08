@@ -8,7 +8,7 @@ import type { RoboflowErrorKind } from '../../roboflow/client';
 type Check = 'strip' | 'entire' | 'brightness' | 'glare' | 'sharpness' | 'orientation' | 'regions' | 'obstruction' | 'color';
 
 const CHECK_ISSUES: Record<Check, PipelineIssue[]> = {
-  strip: ['noStrip'],
+  strip: ['noStrip', 'pregnancyTest', 'covidTest'],
   entire: ['partial'],
   brightness: ['tooDark'],
   glare: ['glare'],
@@ -42,7 +42,7 @@ export function QualityFailure({ report, onRetake, onManual, onCloud, cloudError
       <div className="flex items-start gap-3">
         <Icon name="triangle" size={30} className="mt-1 shrink-0 text-gold" />
         <div>
-          <h1 className="text-h2 sm:text-h1">{t('quality.title')}</h1>
+          <h1 className="text-h2 sm:text-h1">{issues[0] === 'pregnancyTest' || issues[0] === 'covidTest' ? t('quality.wrongKitTitle') : t('quality.title')}</h1>
           <p className="mt-2 text-body-lg">{t(`quality.issues.${issues[0]}` as TKey)}</p>
           {issues.length > 1 && (
             <ul className="mt-3 space-y-1.5 text-muted">

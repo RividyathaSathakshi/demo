@@ -65,6 +65,17 @@ export function OpkResultView({ record, report, onSwapLines, ...actions }: Props
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <StatusBadge status={record.category} size="lg" />
         </div>
+        {record.engine === 'roboflow' && record.testKit && (
+          <p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-success/10 px-3 py-1.5 text-label">
+            <Icon name="layers" size={16} className="text-success" />
+            {t('roboflow.kitConfirmed', { pct: Math.round(record.testKit.confidence * 100) })}
+          </p>
+        )}
+        {report?.testKit === null && (
+          <p className="mt-3 flex gap-2 rounded-lg bg-gold/10 px-3 py-1.5 text-label" role="status">
+            <Icon name="info" size={16} className="mt-0.5 shrink-0 text-gold" /> {t('roboflow.kitNotFound')}
+          </p>
+        )}
         {record.source === 'sample' && (
           <p className="mt-3 inline-flex items-center gap-2 rounded-lg bg-gold/10 px-3 py-1.5 text-label">
             <Icon name="sparkle" size={16} className="text-gold" /> {t('results.sampleNote')}

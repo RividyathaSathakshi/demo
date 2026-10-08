@@ -50,6 +50,10 @@ export interface OpkRecord extends BaseRecord {
   ratio: number | null;
   category: OpkCategory;
   testDetected?: boolean;
+  /** Which engine located the strip. Absent on older records (on-device). */
+  engine?: 'device' | 'roboflow';
+  /** Kit type confirmed by the test-type model, when it ran. */
+  testKit?: { className: string; confidence: number };
   orientation?: Orientation;
   angleDeg?: number;
 }

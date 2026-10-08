@@ -7,7 +7,7 @@ import type { RGBAImage } from '../../cv/image';
 import type { CaptureOptions, ScanModule, ScanReport } from '../../cv/pipeline';
 import { runScan } from '../../cv/runScan';
 import { addRecord, useAppState } from '../../store/store';
-import { runCloudUrineScan } from '../../roboflow/cloudScan';
+import { runCloudOpkScan, runCloudUrineScan } from '../../roboflow/cloudScan';
 import { RoboflowError, type RoboflowErrorKind } from '../../roboflow/client';
 import { resolveRoboflowKey } from '../../roboflow/config';
 import type { RecordSource, TestRecord } from '../../store/types';
@@ -54,7 +54,7 @@ function Flow({ module }: { module: ScanModule }) {
   const timer = useCountdown(TIMER_PRESETS[module][0]);
   const { settings } = useAppState();
   const roboflowKey = resolveRoboflowKey(settings.roboflowKey);
-  const cloudAvailable = module === 'urine' && !!roboflowKey;
+  const cloudAvailable = !!roboflowKey;
   const [cloudError, setCloudError] = useState<RoboflowErrorKind | null>(null);
 
   const toRecord = useCallback(
@@ -69,14 +69,14 @@ function Flow({ module }: { module: ScanModule }) {
       optionsRef.current = options;
       setStep({ kind: 'checking' });
       setCloudError(null);
-      // The trained model is used for real urine photos unless the user turned it
+      // The trained models are used for real photos unless the user turned them
       // off (or asked for on-device on this scan). Simulated samples stay on-device.
       const wantCloud =
         cloudAvailable && source !== 'sample' && (options.engine === 'roboflow' || (options.engine !== 'device' && settings.useTrainedModel));
       let report: ScanReport;
       if (wantCloud) {
         try {
-          report = await runCloudUrineScan(image, roboflowKey);
+          report = module === 'urine' ? await runCloudUrineScan(image, roboflowKey) : await runCloudOpkScan(image, roboflowKey, options);
         } catch (e) {
           setCloudError(e instanceof RoboflowError ? e.kind : 'network');
           report = { ...(await runScan(image, module, options)), fallbackFrom: 'roboflow' };

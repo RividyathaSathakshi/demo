@@ -94,6 +94,22 @@ Lumenova can use the YOLO26s model trained in Roboflow to find the urine strip p
 - `src/cv/roboflowAnalysis.ts` maps the model's classes to parameters, samples each pad, white-balances it against the strip backing, and matches it to the reference chart.
 - `src/roboflow/cloudScan.ts` is the browser glue: it downscales the photo to at most 1600 px, sends it as JPEG, and keeps only the boxes.
 
+### Test-kit type model (Fertility Tracking)
+
+A second Workflow checks ovulation photos before the C/T lines are read:
+
+- **Workflow:** `test-strips-v2-vtest-strips-v2-b3uiv-1-yolo26s-t1-logic` (same workspace and key)
+- **Model:** `sathakshi2-gmail-com/test-strips-v2-b3uiv-1-yolo26s-t1` (YOLO26s, version 1: mAP@50 98.8%, precision 94.7%, recall 94.6%)
+- **Input:** `image`
+- **Output:** `predictions`, one box per test kit. Classes: `ovulation_test`; pregnancy tests (`pregnancy_test`, `urine1_pregnancy`, `urine2_pregnancy`, `green_hcg`, `wh_hcg`); COVID tests (`spring_covid`, `cas_covid`, `hip_covid`)
+
+**How it's used** (`src/cv/testKit.ts`, `runCloudOpkScan` in `src/roboflow/cloudScan.ts`):
+- **Ovulation test found:** the photo is cropped to the detected box (with padding), and the on-device C/T line reader runs on the crop. If that fails, it runs on the full photo.
+- **Pregnancy or COVID test found:** no reading is given, and the user is told this isn't an ovulation strip.
+- **No kit recognised:** the whole photo is read on-device, with a notice.
+
+The model does not detect the lines themselves; line intensity and the T/C ratio are still measured on-device. A real response is stored in `src/roboflow/__fixtures__/test-type-response.json`.
+
 **Setup:** none. The model is **on by default** for urine strip scans.
 1. **Key.** The workspace's publishable key (`rf_…`) is built into `src/roboflow/config.ts`. Roboflow issues publishable keys for client-side code: they can run inference but cannot read or manage the workspace. Never put a private key there or in `VITE_ROBOFLOW_API_KEY`, because both end up in the public JavaScript. `VITE_ROBOFLOW_API_KEY` at build time, or a key entered under **Settings → Trained model**, overrides it.
 2. **Switching it off.** Users can turn it off under **Settings → Trained model** to keep every photo on the device. The Privacy page, home page and onboarding consent all say that urine strip photos are sent to Roboflow.
@@ -102,14 +118,14 @@ Lumenova can use the YOLO26s model trained in Roboflow to find the urine strip p
 **Tests:**
 ```bash
 npx vitest run src/roboflow                                 # parser, client and analysis (offline)
-ROBOFLOW_API_KEY=... npx vitest run src/roboflow/smoke.test.ts   # live call; skipped without a key
+ROBOFLOW_API_KEY=... npx vitest run src/roboflow/smoke.test.ts   # live calls to both workflows; skipped without a key
 ```
-The live smoke test runs the workflow on one image from the training project and checks that the `predictions` output exists.
+The live smoke tests run each workflow on one image from its training project and check that the `predictions` output exists.
 
 ## Privacy
 
 - No account, no backend, no analytics.
-- Photos are processed and discarded; they are never stored. Urine strip photos are sent to the trained Roboflow model to locate the pads unless the user turns it off in Settings. Ovulation strip photos never leave the device.
+- Photos are processed and discarded; they are never stored. Urine strip photos are sent to the trained Roboflow model to locate the pads unless the user turns it off in Settings. Ovulation strip photos are sent to the test-kit model to confirm the kit type and locate the strip; the lines are read on-device.
 - Profile and saved results live in one `localStorage` entry (`lumenova.v1`) on this device. "Clear my data" removes it.
 - Fonts are self-hosted, so no third-party requests are made on page load.
 - "Find wellness help nearby" lists clinics, hospitals, pharmacies and women's health services from OpenStreetMap. It asks for location permission (or the user types a place), then the browser sends that location directly to OpenStreetMap's public Overpass and Nominatim services. Lumenova does not store it. The Privacy page says so.

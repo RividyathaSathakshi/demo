@@ -49,6 +49,8 @@ export function opkRecordFromReport(report: ScanReport, source: RecordSource): O
     ratio: o.ratio,
     category: o.category,
     testDetected: o.testDetected,
+    engine: report.engine ?? 'device',
+    testKit: report.testKit ? { className: report.testKit.className, confidence: report.testKit.confidence } : undefined,
     orientation: report.orientation ?? undefined,
     angleDeg: report.angleDeg,
   };

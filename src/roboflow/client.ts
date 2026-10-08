@@ -1,14 +1,14 @@
 /**
  * Minimal client for the Roboflow serverless Workflow API.
  *
- *   POST {ROBOFLOW_WORKFLOW_URL}
+ *   POST https://serverless.roboflow.com/<workspace>/workflows/<workflow-id>
  *   Authorization: Bearer <key>
  *   { "inputs": { "image": { "type": "base64" | "url", "value": "..." } } }
  *
  * The response is { outputs: [ { <outputName>: ... } ] }: one entry per input
  * image, keyed by the workflow's own output names.
  */
-import { ROBOFLOW_WORKFLOW_URL } from './config';
+import { ROBOFLOW_TEST_TYPE_WORKFLOW_ID, ROBOFLOW_WORKFLOW_ID, roboflowWorkflowUrl } from './config';
 
 export type RoboflowErrorKind = 'notConfigured' | 'auth' | 'timeout' | 'network' | 'server' | 'badRequest' | 'badResponse';
 
@@ -39,14 +39,14 @@ const RETRYABLE = new Set(['timeout', 'network', 'server']);
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function attempt(image: RoboflowImageInput, opts: RunWorkflowOptions): Promise<Record<string, unknown>[]> {
+async function attempt(workflowId: string, image: RoboflowImageInput, opts: RunWorkflowOptions): Promise<Record<string, unknown>[]> {
   const ctl = new AbortController();
   const onAbort = () => ctl.abort();
   opts.signal?.addEventListener('abort', onAbort);
   const timer = setTimeout(() => ctl.abort(), opts.timeoutMs ?? 30000);
   let res: Response;
   try {
-    res = await (opts.fetchImpl ?? fetch)(ROBOFLOW_WORKFLOW_URL, {
+    res = await (opts.fetchImpl ?? fetch)(roboflowWorkflowUrl(workflowId), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${opts.apiKey}` },
       body: JSON.stringify({ inputs: { image, ...(opts.parameters ?? {}) } }),
@@ -77,19 +77,29 @@ async function attempt(image: RoboflowImageInput, opts: RunWorkflowOptions): Pro
 }
 
 /**
- * Runs the urine strip Workflow on one image, with a timeout and up to
- * `retries` retries (exponential backoff) for network, timeout and 5xx/429.
+ * Runs a Workflow in the Lumenova workspace on one image, with a timeout and
+ * up to `retries` retries (exponential backoff) for network, timeout and 5xx/429.
  */
-export async function runUrineStripWorkflow(image: RoboflowImageInput, opts: RunWorkflowOptions): Promise<Record<string, unknown>[]> {
+export async function runWorkflow(workflowId: string, image: RoboflowImageInput, opts: RunWorkflowOptions): Promise<Record<string, unknown>[]> {
   if (!opts.apiKey) throw new RoboflowError('notConfigured', 'No Roboflow API key is configured');
   const retries = opts.retries ?? 2;
   for (let i = 0; ; i++) {
     try {
-      return await attempt(image, opts);
+      return await attempt(workflowId, image, opts);
     } catch (e) {
       const err = e as RoboflowError;
       if (i >= retries || !RETRYABLE.has(err.kind) || opts.signal?.aborted) throw err;
       await sleep(800 * 2 ** i);
     }
   }
+}
+
+/** Urine strip pad detector. */
+export function runUrineStripWorkflow(image: RoboflowImageInput, opts: RunWorkflowOptions) {
+  return runWorkflow(ROBOFLOW_WORKFLOW_ID, image, opts);
+}
+
+/** Test kit type detector (ovulation / pregnancy / COVID tests). */
+export function runTestTypeWorkflow(image: RoboflowImageInput, opts: RunWorkflowOptions) {
+  return runWorkflow(ROBOFLOW_TEST_TYPE_WORKFLOW_ID, image, opts);
 }

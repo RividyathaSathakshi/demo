@@ -215,7 +215,7 @@ const en = {
     },
     privacy: {
       title: 'Your data stays on your device.',
-      body: 'Lumenova runs in your browser with no account. Your profile and history are stored only on your device. Urine strip photos are sent to our trained model on Roboflow to find the test pads, then discarded; you can switch this off in Settings.',
+      body: 'Lumenova runs in your browser with no account. Your profile and history are stored only on your device. Strip photos are sent to our trained models on Roboflow to find the strip and its test pads, then discarded; you can switch this off in Settings.',
       link: 'Read the privacy details',
     },
     preview: {
@@ -354,7 +354,7 @@ const en = {
     points: {
       account: { title: 'No account required', body: 'You never sign up, log in or provide an email address to use Lumenova.' },
       backend: { title: 'No backend', body: 'Lumenova is a static website. There is no Lumenova server that receives your health data.' },
-      images: { title: 'Photos are never stored', body: 'Photos are processed and then discarded; they are not saved. Urine strip photos are sent to Lumenova’s trained model on Roboflow to find the test pads, and colours are read on your device. You can turn this off in Settings to keep every photo on your device. Ovulation strip photos never leave your device.' },
+      images: { title: 'Photos are never stored', body: 'Photos are processed and then discarded; they are not saved. Strip photos are sent to Lumenova’s trained models on Roboflow: for urine strips to find the test pads, for ovulation strips to confirm the kind of test and find the strip. Colours and lines are read on your device. You can turn this off in Settings to keep every photo on your device.' },
       local: { title: 'Data stored locally', body: 'Your profile and saved results are kept in this browser’s local storage, on this device only.' },
       clear: { title: 'You can clear it at any time', body: 'Use “Clear my data” on the dashboard or in settings to remove everything Lumenova has stored.' },
       camera: { title: 'Camera used only for scanning', body: 'The camera is switched on only while the scanner is open, and switched off as soon as you capture or leave.' },
@@ -363,7 +363,7 @@ const en = {
     limits: [
       'Local storage is not encrypted by Lumenova. Anyone with access to this device and browser profile could view it.',
       'Clearing your browser data, or using private browsing, can delete your history.',
-      'Urine strip photos are sent to Roboflow, a computer-vision service, to locate the test pads (unless you turn the trained model off in Settings). Roboflow’s own terms and privacy policy apply to that processing.',
+      'Strip photos are sent to Roboflow, a computer-vision service, to locate the strip and its test pads (unless you turn the trained models off in Settings). Roboflow’s own terms and privacy policy apply to that processing.',
       'If you use “Find wellness help nearby”, your location or the place you type is sent to OpenStreetMap’s public search services to find places. Opening a directions link shares it with that map service.',
       'Your browser and the host serving this website may keep their own standard technical logs.',
     ],
@@ -424,7 +424,7 @@ const en = {
       'Results may be affected by strip type, timing, lighting, camera quality and other factors.',
       'Lumenova does not replace advice from a healthcare professional.',
       'Your data is stored only in this browser, and you can clear it at any time.',
-      'Urine strip photos are sent to Lumenova’s trained model on Roboflow to find the test pads, then discarded. You can turn this off in Settings.',
+      'Strip photos are sent to Lumenova’s trained models on Roboflow to find the strip and its test pads, then discarded. You can turn this off in Settings.',
     ],
     consentCheck: 'I understand and agree to use Lumenova as a screening and wellness aid.',
     finish: 'Start using Lumenova',
@@ -544,8 +544,8 @@ const en = {
 
   roboflow: {
     settingsTitle: 'Trained model (Roboflow)',
-    settingsBody: 'Urine strip photos are sent to Lumenova’s trained model on Roboflow, which was trained on real strip photos to find each pad. Colours are still read on this device. Turn this off to keep every photo on your device (the on-device scanner is used instead).',
-    toggle: 'Use the trained model for urine strip scans',
+    settingsBody: 'Strip photos are sent to Lumenova’s trained models on Roboflow. For urine strips the model finds each pad; for ovulation strips it confirms the photo shows an ovulation test (not a pregnancy or COVID test) and finds the strip. Colours and lines are still read on this device. Turn this off to keep every photo on your device (the on-device scanner is used instead).',
+    toggle: 'Use the trained models for strip scans',
     keyLabel: 'Use a different Roboflow key (optional)',
     keyHint: 'Optional. Lumenova already includes a key. Enter a different publishable key (starts with rf_) only if you want to use another Roboflow workspace. It is stored only in this browser.',
     keySave: 'Save key',
@@ -556,6 +556,8 @@ const en = {
     tryModel: 'Analyze with the trained model',
     tryModelHint: 'Sends this photo to Roboflow to locate the pads.',
     engineModel: 'Pads located by the trained Roboflow model; colours read on this device',
+    kitConfirmed: 'Ovulation (LH) test confirmed by the trained model ({pct}%); lines read on this device',
+    kitNotFound: 'The trained model did not recognise the test kit, so the whole photo was read on this device. Check that this is an ovulation (LH) test.',
     engineDevice: 'Analyzed on this device',
     fallback: {
       notConfigured: 'Cloud analysis is not set up, so this photo was analyzed on your device.',
@@ -630,6 +632,7 @@ const en = {
 
   quality: {
     title: "The image isn't clear enough to read reliably.",
+    wrongKitTitle: 'This is not an ovulation test strip',
     lead: 'Nothing was analyzed, so there is no result from this photo.',
     checksTitle: 'What we checked',
     issues: {
@@ -643,6 +646,8 @@ const en = {
       colorCast: 'The light is strongly coloured, which changes how the pads look. Try neutral daylight or white light.',
       noRegions: 'We found the strip but could not see its test regions clearly. Make sure the pads or lines are facing the camera.',
       colorMismatch: 'The pad colours did not match the reference chart closely enough. Check the strip type and timing, and try again in even light.',
+      pregnancyTest: 'This looks like a pregnancy (hCG) test, not an ovulation (LH) strip. Fertility Tracking can only read ovulation strips, so no result was given. Please photograph an ovulation test.',
+      covidTest: 'This looks like a COVID-19 test, not an ovulation (LH) strip. Fertility Tracking can only read ovulation strips, so no result was given.',
       controlMissing: 'No control line was found. A test without a visible control line cannot be read and may not be valid. Check the strip instructions.',
     },
     checks: {
@@ -988,7 +993,7 @@ const en = {
     tracking: 'Tracking',
     appearance: 'Appearance',
     privacyTitle: 'Privacy',
-    privacySummary: 'Your profile and results are stored in this browser only. Urine strip photos are sent to the trained model unless you turn it off below.',
+    privacySummary: 'Your profile and results are stored in this browser only. Strip photos are sent to the trained models unless you turn them off below.',
     storageUsed: '{n} saved results, {p} logged periods.',
   },
 

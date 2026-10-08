@@ -1,0 +1,13 @@
+{
+  "result": [
+    {
+      "predictions": {
+        "image": { "width": 640, "height": 640 },
+        "predictions": [
+          { "width": 610, "height": 38, "x": 323, "y": 397, "confidence": 0.759765625, "class_id": 3, "class": "ovulation_test", "detection_id": "ecef5409-6696-492e-822c-a441fb5f6030", "parent_id": "image" },
+          { "width": 608, "height": 42, "x": 326, "y": 397, "confidence": 0.41015625, "class_id": 3, "class": "ovulation_test", "detection_id": "5dc4d6b3-d5fe-4788-8feb-ee24eaf51fc8", "parent_id": "image" }
+        ]
+      }
+    }
+  ]
+}

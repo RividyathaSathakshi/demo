@@ -5,7 +5,7 @@
  *   ROBOFLOW_API_KEY=... npx vitest run src/roboflow/smoke.test.ts
  */
 import { describe, expect, it } from 'vitest';
-import { runUrineStripWorkflow } from './client';
+import { runTestTypeWorkflow, runUrineStripWorkflow } from './client';
 import { parseWorkflowDetections } from './parse';
 
 const env = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
@@ -20,5 +20,17 @@ describe.skipIf(!key)('Roboflow workflow (live)', () => {
     expect(Object.keys(outputs[0])).toContain('predictions');
     const parsed = parseWorkflowDetections(outputs);
     expect(parsed?.detections.length).toBeGreaterThan(0);
+  });
+});
+
+// An ovulation-test image from the "Test Strips v2" project.
+const KIT_SAMPLE = env.ROBOFLOW_KIT_SAMPLE_IMAGE_URL ?? 'https://source.roboflow.com/B33qtaXgx0OiKG6qm5kCQbKTXI22/gHInS4f5VUp6CYF8XZaE/original.jpg';
+
+describe.skipIf(!key)('Roboflow test-type workflow (live)', () => {
+  it('returns the expected output keys for a sample image', { timeout: 60000 }, async () => {
+    const outputs = await runTestTypeWorkflow({ type: 'url', value: KIT_SAMPLE }, { apiKey: key, timeoutMs: 45000 });
+    expect(outputs.length).toBe(1);
+    expect(Object.keys(outputs[0])).toContain('predictions');
+    expect(parseWorkflowDetections(outputs)?.detections.length).toBeGreaterThan(0);
   });
 });

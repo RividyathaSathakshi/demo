@@ -17,7 +17,7 @@ import { analyzeOpk, type OpkAnalysis } from './opkAnalysis';
 
 export type ScanModule = 'urine' | 'opk';
 
-export type PipelineIssue = QualityIssue | 'noRegions' | 'unsupportedLayout' | 'colorMismatch' | 'controlMissing';
+export type PipelineIssue = QualityIssue | 'noRegions' | 'unsupportedLayout' | 'colorMismatch' | 'controlMissing' | 'pregnancyTest' | 'covidTest';
 
 export interface OverlayRegion {
   quad: Point[];
@@ -172,6 +172,8 @@ export interface ScanReport {
   engine?: 'device' | 'roboflow';
   /** Set when a cloud analysis failed and the on-device result is shown instead. */
   fallbackFrom?: 'roboflow';
+  /** Test kit recognised by the test-type model (Fertility Tracking). */
+  testKit?: { kind: 'ovulation' | 'pregnancy' | 'covid'; className: string; confidence: number } | null;
 }
 
 export function toScanReport(a: CaptureAnalysis): ScanReport {
