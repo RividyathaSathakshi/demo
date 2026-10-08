@@ -111,7 +111,7 @@ A second Workflow checks ovulation photos before the C/T lines are read:
 The model does not detect the lines themselves; line intensity and the T/C ratio are still measured on-device. A real response is stored in `src/roboflow/__fixtures__/test-type-response.json`.
 
 **Setup:** none. The model is **on by default** for urine strip scans.
-1. **Key.** The workspace's publishable key (`rf_…`) is built into `src/roboflow/config.ts`. Roboflow issues publishable keys for client-side code: they can run inference but cannot read or manage the workspace. Never put a private key there or in `VITE_ROBOFLOW_API_KEY`, because both end up in the public JavaScript. `VITE_ROBOFLOW_API_KEY` at build time, or a key entered under **Settings → Trained model**, overrides it.
+1. **Key.** The workspace's publishable key (`rf_…`) is built into `src/roboflow/config.ts`. Roboflow issues publishable keys for client-side code: they can run inference but cannot read or manage the workspace. Never put a private key there or in `VITE_ROBOFLOW_API_KEY`, because both end up in the public JavaScript. `VITE_ROBOFLOW_API_KEY` at build time overrides it (developers only). Users never enter a key; Settings only has an on/off switch.
 2. **Switching it off.** Users can turn it off under **Settings → Trained model** to keep every photo on the device. The Privacy page, home page and onboarding consent all say that urine strip photos are sent to Roboflow.
 3. **Fallback.** If Roboflow fails (offline, timeout, key rejected), the scan falls back to on-device analysis and says why. Quality-failure screens also offer **Analyze with the trained model** for a single photo.
 

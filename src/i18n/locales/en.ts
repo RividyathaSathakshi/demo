@@ -552,7 +552,7 @@ const en = {
     keySaved: 'Key saved in this browser.',
     keyClear: 'Remove key',
     keyMissing: 'Add a Roboflow key to turn this on.',
-    keyFromBuild: 'Ready to use; no key needed.',
+    keyFromBuild: 'Ready to use. Nothing to set up.',
     tryModel: 'Analyze with the trained model',
     tryModelHint: 'Sends this photo to Roboflow to locate the pads.',
     engineModel: 'Pads located by the trained Roboflow model; colours read on this device',
