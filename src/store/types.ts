@@ -39,6 +39,8 @@ export interface UrineRecord extends BaseRecord {
   angleDeg?: number;
   overall: ScreeningStatus;
   readings: UrineReadingRecord[];
+  /** Which engine located the pads. Absent on older records (on-device). */
+  engine?: 'device' | 'roboflow';
 }
 
 export interface OpkRecord extends BaseRecord {
@@ -58,7 +60,15 @@ export interface AppState {
   version: 1;
   profile: Profile | null;
   consentAcceptedAt: string | null;
-  settings: { theme: ThemePreference; locale: string; autoCapture: boolean };
+  settings: {
+    theme: ThemePreference;
+    locale: string;
+    autoCapture: boolean;
+    /** Opt-in: send urine strip photos to the Roboflow model to locate pads. */
+    cloudAnalysis: boolean;
+    /** Optional Roboflow key entered by the user; kept only in this browser. */
+    roboflowKey: string;
+  };
   records: TestRecord[];
   /** Logged period start dates, YYYY-MM-DD. */
   periodStarts: string[];

@@ -1,0 +1,20 @@
+{
+  "result": [
+    {
+      "predictions": {
+        "image": { "width": 756, "height": 1008 },
+        "predictions": [
+          { "width": 108, "height": 488, "x": 307, "y": 503, "confidence": 0.96875, "class_id": 11, "class": "strip", "detection_id": "67078f70-942b-482a-a8cb-1d9ed2284c22", "parent_id": "image" },
+          { "width": 40, "height": 45, "x": 334, "y": 335.5, "confidence": 0.9638671875, "class_id": 5, "class": "Nitrite", "detection_id": "bf69662b-36f6-4c20-9fb2-de7b49b8fff7", "parent_id": "image" },
+          { "width": 40, "height": 45, "x": 299, "y": 572.5, "confidence": 0.94091796875, "class_id": 1, "class": "Blood", "detection_id": "0dfad5d4-5f6a-48de-ac3a-559605637960", "parent_id": "image" },
+          { "width": 43, "height": 45, "x": 342.5, "y": 275.5, "confidence": 0.92724609375, "class_id": 4, "class": "Leukocytes", "detection_id": "08a29c68-c540-4c08-8dc1-4ca58f8a8339", "parent_id": "image" },
+          { "width": 41, "height": 46, "x": 325.5, "y": 396, "confidence": 0.89892578125, "class_id": 8, "class": "Urobilinogen", "detection_id": "79fe034a-a61e-4270-9d71-e64d459f7df9", "parent_id": "image" },
+          { "width": 40, "height": 46, "x": 316, "y": 455, "confidence": 0.8759765625, "class_id": 6, "class": "Protein", "detection_id": "6e40cfa5-7a40-4c96-b17b-b069e18e8478", "parent_id": "image" },
+          { "width": 41, "height": 46, "x": 307.5, "y": 515, "confidence": 0.79443359375, "class_id": 10, "class": "pH", "detection_id": "8373f323-b55b-4643-8434-5d227aef15cb", "parent_id": "image" },
+          { "width": 37, "height": 45, "x": 290.5, "y": 630.5, "confidence": 0.70068359375, "class_id": 7, "class": "SpGravity", "detection_id": "a2dec06d-5ab5-4a71-ae49-1671c8aa0850", "parent_id": "image" },
+          { "width": 38, "height": 32, "x": 276, "y": 740, "confidence": 0.525390625, "class_id": 3, "class": "Ketone", "detection_id": "b1b17790-1cfa-4482-a37a-652de61d153d", "parent_id": "image" }
+        ]
+      }
+    }
+  ]
+}
