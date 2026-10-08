@@ -145,3 +145,47 @@
 .animate-sweep { animation: scan-sweep 1.6s ease-in-out infinite; }
 .animate-pulse-ring { animation: pulse-ring 1.2s ease-out infinite; }
 .draw-in { stroke-dasharray: var(--dash, 400); animation: draw-in 0.7s ease-out both; }
+
+/* Nearby-help map (Leaflet). Popups stay light in both themes, like the map tiles. */
+.lmn-pin {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px 9999px 9999px 2px;
+  transform: rotate(-45deg);
+  background: rgb(var(--rose));
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(20, 24, 42, 0.45);
+  color: #fff;
+  font: 600 12px/1 'IBM Plex Sans', sans-serif;
+}
+.lmn-pin > * { transform: rotate(45deg); }
+.lmn-pin-active {
+  background: #1e2438;
+  box-shadow: 0 0 0 4px rgba(201, 138, 61, 0.55), 0 1px 4px rgba(20, 24, 42, 0.45);
+}
+.lmn-origin {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: #2f6fd6;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 6px rgba(47, 111, 214, 0.25), 0 1px 4px rgba(20, 24, 42, 0.45);
+}
+.lmn-popup { color: #1e2438; font: 400 13px/1.45 'IBM Plex Sans', sans-serif; display: grid; gap: 2px; }
+.lmn-popup strong { font-weight: 600; font-size: 14px; }
+.lmn-popup-sub { color: #5b6178; }
+.lmn-popup-link {
+  margin-top: 6px;
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1e2438;
+  color: #faf6f0 !important;
+  text-decoration: none;
+  font-weight: 500;
+  justify-self: start;
+}
+.leaflet-container { font-family: 'IBM Plex Sans', sans-serif; }

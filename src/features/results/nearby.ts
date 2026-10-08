@@ -2,11 +2,14 @@
  * Nearby healthcare search using OpenStreetMap's public services, called
  * directly from the browser (no Lumenova server, nothing stored):
  *
- *  - Nominatim turns a typed place into coordinates. One request per explicit
- *    Search click (no autocomplete), at most one request per second, results
- *    cached in memory for the session, per the Nominatim usage policy:
+ *  - Nominatim turns a typed place into candidate coordinates (up to 5, the user
+ *    picks one). One request per explicit Search click (no autocomplete), at
+ *    most one request per second, results cached in memory for the session, per
+ *    the Nominatim usage policy. Browsers cannot set User-Agent, so the app is
+ *    identified by its Referer (sent explicitly with a strict-origin policy):
  *    https://operations.osmfoundation.org/policies/nominatim/
- *  - Overpass finds healthcare facilities around a point (about 5 km).
+ *  - Overpass finds healthcare facilities around the chosen point (about 5 km).
+ *    Nominatim is never used as the healthcare database.
  *
  * Data © OpenStreetMap contributors, ODbL: https://www.openstreetmap.org/copyright
  */
@@ -48,7 +51,8 @@ export class NearbyError extends Error {
 
 export const SEARCH_RADIUS_M = 5000;
 export const WIDE_RADIUS_M = 15000;
-const REQUEST_TIMEOUT_MS = 25000;
+/** Per request; with three Overpass mirrors the worst case stays well under a minute. */
+const REQUEST_TIMEOUT_MS = 12000;
 const MAX_RESULTS = 20;
 
 export const OVERPASS_ENDPOINTS = [
@@ -134,14 +138,25 @@ function address(tags: Record<string, string>): string | null {
   return parts.length ? parts.join(', ') : null;
 }
 
+export function isValidLatLon(lat: unknown, lon: unknown): lat is number {
+  return typeof lat === 'number' && typeof lon === 'number' && Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180;
+}
+
+/** Keeps only short string tag values (OSM data is user-contributed). */
+function sanitizeTags(tags: Record<string, unknown>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(tags)) if (typeof v === 'string' && v.trim()) out[k] = v.trim().slice(0, 300);
+  return out;
+}
+
 export function parseOverpass(json: OverpassResponse, lat: number, lon: number): Place[] {
   const seen = new Set<string>();
   const out: Place[] = [];
   for (const el of json.elements ?? []) {
     const plat = el.lat ?? el.center?.lat;
     const plon = el.lon ?? el.center?.lon;
-    if (plat === undefined || plon === undefined) continue;
-    const tags = el.tags ?? {};
+    if (!isValidLatLon(plat, plon) || plon === undefined) continue;
+    const tags = el.tags && typeof el.tags === 'object' ? sanitizeTags(el.tags) : {};
     const name = tags.name ?? tags['name:en'] ?? tags.brand ?? tags.operator ?? null;
     // The same facility is often mapped as both a point and a building outline.
     const key = name ? `${name.toLowerCase()}@${plat.toFixed(3)},${plon.toFixed(3)}` : `${el.type}/${el.id}`;
@@ -209,7 +224,17 @@ export async function findNearby(
         lastError = new NearbyError('server', `Overpass returned ${res.status}`);
         continue;
       }
-      const json = (await res.json()) as OverpassResponse;
+      let json: OverpassResponse;
+      try {
+        json = (await res.json()) as OverpassResponse;
+      } catch {
+        lastError = new NearbyError('server', 'Overpass returned invalid JSON');
+        continue;
+      }
+      if (!json || (json.elements !== undefined && !Array.isArray(json.elements))) {
+        lastError = new NearbyError('server', 'Unexpected Overpass response');
+        continue;
+      }
       // Overpass reports query timeouts and overload as a "remark" with HTTP 200.
       if (json.remark && /error|timed out|out of memory/i.test(json.remark)) {
         lastError = new NearbyError('busy', json.remark);
@@ -229,33 +254,63 @@ export async function findNearby(
 export interface GeocodeResult {
   lat: number;
   lon: number;
+  /** Full place description from Nominatim, e.g. "Whitefield, Bengaluru, Karnataka, India". */
   label: string;
+  /** OSM place type, e.g. "suburb", "city", "postcode", when given. */
+  kind: string | null;
 }
 
-const geocodeCache = new Map<string, GeocodeResult | null>();
+const geocodeCache = new Map<string, GeocodeResult[]>();
 let lastNominatimCall = 0;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+export const MAX_GEOCODE_RESULTS = 5;
+
 /**
- * Geocodes one place name. Called only when the user presses Search; spaced
- * at least 1 s apart and cached for the session, as Nominatim's policy requires.
+ * Geocodes one typed place into up to five candidates for the user to choose
+ * from. Called only when the user presses Search; spaced at least 1 s apart and
+ * cached for the session, as Nominatim's usage policy requires.
  */
-export async function geocode(query: string, lang?: string, signal?: AbortSignal): Promise<GeocodeResult | null> {
-  const key = query.trim().toLowerCase();
-  if (geocodeCache.has(key)) return geocodeCache.get(key)!;
+export async function geocode(query: string, lang?: string, signal?: AbortSignal): Promise<GeocodeResult[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const key = `${lang ?? ''}|${q.toLowerCase()}`;
+  const cached = geocodeCache.get(key);
+  if (cached) return cached;
   const wait = lastNominatimCall + 1100 - Date.now();
   if (wait > 0) await sleep(wait);
   lastNominatimCall = Date.now();
-  const params = new URLSearchParams({ format: 'jsonv2', limit: '1', q: query.trim() });
+  const params = new URLSearchParams({ format: 'jsonv2', limit: String(MAX_GEOCODE_RESULTS), q });
   if (lang) params.set('accept-language', lang);
-  const res = await fetchWithTimeout(`${NOMINATIM}?${params}`, { headers: { Accept: 'application/json' } }, signal);
+  const res = await fetchWithTimeout(
+    `${NOMINATIM}?${params.toString()}`,
+    { headers: { Accept: 'application/json' }, referrerPolicy: 'strict-origin-when-cross-origin' },
+    signal,
+  );
   if (res.status === 429) throw new NearbyError('busy', 'Nominatim rate limit');
   if (!res.ok) throw new NearbyError('server', `Nominatim returned ${res.status}`);
-  const json = (await res.json()) as { lat: string; lon: string; display_name: string }[];
-  const result = json.length ? { lat: Number(json[0].lat), lon: Number(json[0].lon), label: json[0].display_name } : null;
-  geocodeCache.set(key, result);
-  return result;
+  let json: unknown;
+  try {
+    json = await res.json();
+  } catch {
+    throw new NearbyError('server', 'Nominatim returned invalid JSON');
+  }
+  if (!Array.isArray(json)) throw new NearbyError('server', 'Unexpected Nominatim response');
+  const results: GeocodeResult[] = [];
+  for (const item of json as Record<string, unknown>[]) {
+    const lat = Number(item?.lat);
+    const lon = Number(item?.lon);
+    if (!isValidLatLon(lat, lon) || typeof item.display_name !== 'string') continue;
+    results.push({
+      lat,
+      lon,
+      label: item.display_name.slice(0, 300),
+      kind: typeof item.addresstype === 'string' ? item.addresstype : typeof item.type === 'string' ? item.type : null,
+    });
+  }
+  geocodeCache.set(key, results);
+  return results;
 }
 
 /** For tests. */

@@ -87,20 +87,49 @@ describe('geocode (Nominatim)', () => {
   beforeEach(() => resetNominatimState());
   afterEach(() => vi.unstubAllGlobals());
 
-  it('returns coordinates and caches repeat searches', async () => {
-    const f = vi.fn(async () => json([{ lat: '48.85', lon: '2.35', display_name: 'Paris, France' }]));
+  it('returns candidates and caches repeat searches', async () => {
+    const f = vi.fn(async () => json([{ lat: '48.85', lon: '2.35', display_name: 'Paris, France', addresstype: 'city' }]));
     vi.stubGlobal('fetch', f);
-    expect(await geocode('Paris')).toEqual({ lat: 48.85, lon: 2.35, label: 'Paris, France' });
-    expect(await geocode('  paris ')).toEqual({ lat: 48.85, lon: 2.35, label: 'Paris, France' });
+    const want = [{ lat: 48.85, lon: 2.35, label: 'Paris, France', kind: 'city' }];
+    expect(await geocode('Paris')).toEqual(want);
+    expect(await geocode('  paris ')).toEqual(want);
     expect(f).toHaveBeenCalledTimes(1);
     const url = String((f.mock.calls[0] as unknown as [string])[0]);
     expect(url).toContain('nominatim.openstreetmap.org/search');
-    expect(url).toContain('limit=1');
+    expect(url).toContain('limit=5');
   });
 
-  it('returns null when the place is not found', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => json([])));
-    expect(await geocode('zzzzqqq')).toBeNull();
+  it('URL-encodes the typed place', async () => {
+    const f = vi.fn(async () => json([]));
+    vi.stubGlobal('fetch', f);
+    await geocode('St. John\'s & Co #5');
+    const url = String((f.mock.calls[0] as unknown as [string])[0]);
+    expect(new URL(url).searchParams.get('q')).toBe("St. John's & Co #5");
+    expect(url).not.toContain('#');
+  });
+
+  it('returns several matches so the user can choose, dropping invalid coordinates', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => json([
+      { lat: '51.5', lon: '-0.12', display_name: 'London, England' },
+      { lat: '42.98', lon: '-81.24', display_name: 'London, Ontario' },
+      { lat: 'abc', lon: '1', display_name: 'Broken' },
+      { lat: '95', lon: '1', display_name: 'Out of range' },
+    ])));
+    const r = await geocode('London');
+    expect(r.map((x) => x.label)).toEqual(['London, England', 'London, Ontario']);
+  });
+
+  it('returns an empty list when the place is not found or the input is blank', async () => {
+    const f = vi.fn(async () => json([]));
+    vi.stubGlobal('fetch', f);
+    expect(await geocode('zzzzqqq')).toEqual([]);
+    expect(await geocode('   ')).toEqual([]);
+    expect(f).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a server failure distinctly from "not found"', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('oops', { status: 500 })));
+    await expect(geocode('Paris')).rejects.toMatchObject({ kind: 'server' });
   });
 
   it('spaces requests at least one second apart', async () => {
