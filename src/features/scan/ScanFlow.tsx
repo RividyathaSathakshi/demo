@@ -69,10 +69,10 @@ function Flow({ module }: { module: ScanModule }) {
       optionsRef.current = options;
       setStep({ kind: 'checking' });
       setCloudError(null);
-      // The trained model is used for real urine photos when the user opted in
-      // (or asked for it on this scan). Simulated samples always stay on-device.
+      // The trained model is used for real urine photos unless the user turned it
+      // off (or asked for on-device on this scan). Simulated samples stay on-device.
       const wantCloud =
-        cloudAvailable && source !== 'sample' && (options.engine === 'roboflow' || (options.engine !== 'device' && settings.cloudAnalysis));
+        cloudAvailable && source !== 'sample' && (options.engine === 'roboflow' || (options.engine !== 'device' && settings.useTrainedModel));
       let report: ScanReport;
       if (wantCloud) {
         try {
@@ -90,7 +90,7 @@ function Flow({ module }: { module: ScanModule }) {
       } else if (report.issues.includes('unsupportedLayout')) setStep({ kind: 'unsupported', report });
       else setStep({ kind: 'quality', report });
     },
-    [module, toRecord, cloudAvailable, roboflowKey, settings.cloudAnalysis],
+    [module, toRecord, cloudAvailable, roboflowKey, settings.useTrainedModel],
   );
 
   const onCapture = useCallback((image: RGBAImage) => analyze(image, 'camera'), [analyze]);

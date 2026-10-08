@@ -79,7 +79,7 @@ Strip layouts are data in `src/config/strips.ts`. The prototype ships 2-, 3-, 4-
   chromium --use-fake-device-for-media-stream --use-file-for-fake-video-capture=strip.y4m
   ```
 
-## Roboflow model (optional cloud analysis)
+## Roboflow model (trained pad detector)
 
 Lumenova can use the YOLO26s model trained in Roboflow to find the urine strip pads. The model locates each pad and names its parameter; Lumenova still reads the colours on the device.
 
@@ -94,10 +94,10 @@ Lumenova can use the YOLO26s model trained in Roboflow to find the urine strip p
 - `src/cv/roboflowAnalysis.ts` maps the model's classes to parameters, samples each pad, white-balances it against the strip backing, and matches it to the reference chart.
 - `src/roboflow/cloudScan.ts` is the browser glue: it downscales the photo to at most 1600 px, sends it as JPEG, and keeps only the boxes.
 
-**Turning it on:**
-1. **API key.** It is never hardcoded. Either enter a key in the app under **Settings > Cloud analysis** (stored only in that browser), or set `VITE_ROBOFLOW_API_KEY` at build time. Vite inlines `VITE_` variables into the public JavaScript, so use your workspace's **publishable** key (`rf_...`) there, never a private key. Find keys at https://app.roboflow.com/settings/api.
-2. **Opt in.** In Settings, enable **Use the Roboflow model for urine strip scans**. It is off by default, because the photo leaves the device; the Privacy page says so.
-3. **Fallback.** If Roboflow fails (bad key, offline, timeout), the scan falls back to on-device analysis and says why. Quality-failure screens also offer **Analyze with the trained model** for a single photo.
+**Setup:** none. The model is **on by default** for urine strip scans.
+1. **Key.** The workspace's publishable key (`rf_…`) is built into `src/roboflow/config.ts`. Roboflow issues publishable keys for client-side code: they can run inference but cannot read or manage the workspace. Never put a private key there or in `VITE_ROBOFLOW_API_KEY`, because both end up in the public JavaScript. `VITE_ROBOFLOW_API_KEY` at build time, or a key entered under **Settings → Trained model**, overrides it.
+2. **Switching it off.** Users can turn it off under **Settings → Trained model** to keep every photo on the device. The Privacy page, home page and onboarding consent all say that urine strip photos are sent to Roboflow.
+3. **Fallback.** If Roboflow fails (offline, timeout, key rejected), the scan falls back to on-device analysis and says why. Quality-failure screens also offer **Analyze with the trained model** for a single photo.
 
 **Tests:**
 ```bash
@@ -109,7 +109,7 @@ The live smoke test runs the workflow on one image from the training project and
 ## Privacy
 
 - No account, no backend, no analytics.
-- Photos are processed in memory and discarded. They are never stored, and they are only uploaded if the user turns on Roboflow cloud analysis in Settings (urine strips only).
+- Photos are processed and discarded; they are never stored. Urine strip photos are sent to the trained Roboflow model to locate the pads unless the user turns it off in Settings. Ovulation strip photos never leave the device.
 - Profile and saved results live in one `localStorage` entry (`lumenova.v1`) on this device. "Clear my data" removes it.
 - Fonts are self-hosted, so no third-party requests are made on page load.
 - "Find wellness help nearby" lists clinics, hospitals, pharmacies and women's health services from OpenStreetMap. It asks for location permission (or the user types a place), then the browser sends that location directly to OpenStreetMap's public Overpass and Nominatim services. Lumenova does not store it. The Privacy page says so.

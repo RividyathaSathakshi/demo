@@ -64,8 +64,8 @@ export interface AppState {
     theme: ThemePreference;
     locale: string;
     autoCapture: boolean;
-    /** Opt-in: send urine strip photos to the Roboflow model to locate pads. */
-    cloudAnalysis: boolean;
+    /** Send urine strip photos to the trained Roboflow model to locate pads (on by default). */
+    useTrainedModel: boolean;
     /** Optional Roboflow key entered by the user; kept only in this browser. */
     roboflowKey: string;
   };

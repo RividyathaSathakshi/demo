@@ -107,3 +107,12 @@ describe('model-driven analysis', () => {
     expect(report.issues).toEqual(['noRegions']);
   });
 });
+
+describe('key resolution', () => {
+  it('uses the built-in publishable key when nothing else is configured', async () => {
+    const { resolveRoboflowKey, ROBOFLOW_PUBLISHABLE_KEY } = await import('./config');
+    expect(ROBOFLOW_PUBLISHABLE_KEY.startsWith('rf_')).toBe(true);
+    expect(resolveRoboflowKey('')).toBe(ROBOFLOW_PUBLISHABLE_KEY);
+    expect(resolveRoboflowKey('rf_other')).toBe('rf_other');
+  });
+});

@@ -130,9 +130,9 @@ function RoboflowSettings() {
         <input
           type="checkbox"
           className="mt-1 h-5 w-5 shrink-0 accent-[rgb(var(--ink))]"
-          checked={settings.cloudAnalysis && hasKey}
+          checked={settings.useTrainedModel && hasKey}
           disabled={!hasKey}
-          onChange={(e) => updateSettings({ cloudAnalysis: e.target.checked })}
+          onChange={(e) => updateSettings({ useTrainedModel: e.target.checked })}
         />
         <span>
           <span className="block font-medium">{t('roboflow.toggle')}</span>
@@ -178,7 +178,7 @@ function RoboflowSettings() {
               size="sm"
               icon="trash"
               onClick={() => {
-                updateSettings({ roboflowKey: '', cloudAnalysis: !!buildTimeRoboflowKey() && settings.cloudAnalysis });
+                updateSettings({ roboflowKey: '' });
                 setDraft('');
                 setSaved(false);
               }}
